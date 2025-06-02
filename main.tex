@@ -1,0 +1,175 @@
+\documentclass[12pt,a4paper]{report}
+
+% Essential packages for a modern thesis
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{cite}
+\usepackage{natbib}
+
+% Page geometry
+\geometry{
+    left=3cm,
+    right=2.5cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+
+% Line spacing
+\onehalfspacing
+
+% Header and footer setup
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\fancyhead[L]{\leftmark}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Code listing setup
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    commentstyle=\color{gray},
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+}
+
+% Title page information
+\title{Your Thesis Title Here}
+\author{Your Name}
+\date{\today}
+
+\begin{document}
+
+% Title page
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    {\Large\textbf{University Name}}\\[0.5cm]
+    {\large Department/Faculty Name}\\[2cm]
+    
+    {\huge\textbf{Your Thesis Title Here}}\\[1cm]
+    {\Large Subtitle (if applicable)}\\[3cm]
+    
+    {\large by}\\[0.5cm]
+    {\Large\textbf{Your Name}}\\[2cm]
+    
+    {\large A thesis submitted in partial fulfillment\\
+    of the requirements for the degree of\\[0.5cm]
+    \textbf{Doctor of Philosophy}\\
+    in\\
+    \textbf{Your Field of Study}}\\[2cm]
+    
+    {\large\today}
+    
+    \vfill
+\end{titlepage}
+
+% Abstract
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+Your abstract goes here. This should be a concise summary of your thesis work, typically 200-300 words.
+
+% Table of contents
+\tableofcontents
+\newpage
+
+% List of figures (optional)
+\listoffigures
+\newpage
+
+% List of tables (optional)
+\listoftables
+\newpage
+
+% Main content
+\chapter{Introduction}
+\label{ch:introduction}
+
+This is your introduction chapter. You can reference other chapters like Chapter~\ref{ch:literature-review}.
+
+\section{Background}
+Background information goes here.
+
+\section{Problem Statement}
+Your problem statement.
+
+\section{Research Questions}
+Your research questions.
+
+\section{Contributions}
+Your main contributions.
+
+\section{Thesis Organization}
+How your thesis is organized.
+
+\chapter{Literature Review}
+\label{ch:literature-review}
+
+Your literature review goes here. You can cite papers like this \cite{example2023}.
+
+\chapter{Methodology}
+\label{ch:methodology}
+
+Your methodology chapter.
+
+\chapter{Results}
+\label{ch:results}
+
+Your results chapter.
+
+\section{Experimental Setup}
+\subsection{Data Collection}
+\subsection{Analysis Methods}
+
+\section{Findings}
+You can include figures like Figure~\ref{fig:example}.
+
+\begin{figure}[htbp]
+    \centering
+    % \includegraphics[width=0.8\textwidth]{figures/example.png}
+    \caption{An example figure (uncomment includegraphics when you have the image)}
+    \label{fig:example}
+\end{figure}
+
+\chapter{Discussion}
+\label{ch:discussion}
+
+Discussion of your results.
+
+\chapter{Conclusion}
+\label{ch:conclusion}
+
+Your conclusions and future work.
+
+% Bibliography
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+% Appendices (optional)
+\appendix
+\chapter{Additional Data}
+\label{app:additional-data}
+
+Additional material can go in appendices.
+
+\end{document} 
