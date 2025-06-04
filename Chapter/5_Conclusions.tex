@@ -1,0 +1,34 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Achievements}
+The thesis has presented related research, foundation theories, and frameworks required to create an AI module for the person monitoring on edge devices using computer vision. All of these components have been combined to create a working prototype that meets the original objectives:
+\begin{enumerate}
+\item Developed a stand-alone remote human monitoring AI module, implemented on edge devices, Jetson Nano. The module contains three main parts: human detection, human feature extraction, and human tracking. The proposed module could detect humans, track them, and give each individual identity features based on their outlook. The output of this module was integrated into a bigger management system.
+\item Implemented deep learning models directly on edge devices with input source taken from a connected USB camera. The object detection and feature extraction models were tailored and optimized for deployment on Jetson Nano. The frame rate was higher than ten if the number of people was smaller or equal to six. A prototype of the proposed AI module has been put into practical use and examined in room 405, B1 building at Hanoi University of Science and Technology.
+\end{enumerate}
+
+Furthermore, while completing this thesis, I have gained a lot of useful knowledge about computer vision, AI algorithms, and their implementation on edge devices. I find deploying them on real-world devices really challenging. All of these have become a precious experience for me.
+
+\section{Limitations}
+Because of the limited time, money, and computing resource constraints, this thesis faces the following limitations:
+
+\begin{enumerate}
+\item Jetson Nano does not function well when the number of people in the frame is high.
+\item The viewing angle of the camera does not cover the whole room and the system will not work well when there are many objects in the room that obscure the view of the camera.
+\item The proposed feature extraction model can meet the lightweight requirements to be implemented on edge devices but it has to trade off with accuracy.
+\item In the event that the edge device experiences a shutdown, there is no automated recovery protocol.
+\end{enumerate}
+
+\section{Suggestions for future works}
+To provide better performance, several future developments can be conducted:
+
+\begin{enumerate}
+\item Using more powerful hardware thereby not only directly increases FPS but also creates a good condition to implement more accurate algorithms.
+\item Utilizing a camera with a broader field of view and installing it on the ceiling to achieve comprehensive room monitoring while avoiding blind spots.
+\item Lightweight, high-accuracy models and algorithms need to be further researched.
+\item Installing an automated recovery protocol to turn on edge devices.
+\item Carrying out more real-world deployments to spot weaknesses that need improvement.
+\end{enumerate}
+
+\end{document}

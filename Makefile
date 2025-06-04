@@ -14,7 +14,7 @@ BUILD_DIR = build
 all: $(MAIN).pdf
 
 # Compile the main document
-$(MAIN).pdf: $(MAIN).tex references.bib
+$(MAIN).pdf: $(MAIN).tex reference.bib
 	$(LATEX) $(MAIN).tex
 	$(BIBTEX) $(MAIN)
 	$(LATEX) $(MAIN).tex
