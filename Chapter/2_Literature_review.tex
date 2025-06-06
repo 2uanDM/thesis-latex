@@ -4,35 +4,38 @@ Chapter~\ref{chapter:intro} has discussed the problems which lead to the motivat
 
 \section{Related works}
 \label{sec:related}
-\subsection{Person re-identification}
-One of the main objectives of the proposed module is re-identifying persons across multiple cameras. Person re-identification can be considered a person retrieval problem. A person Re-ID system is used to recognize individuals who move out of a camera's view and then reappear in another camera's view or current camera view at another timestamp. For this reason, it can be used to track specific entities across multiple cameras. Facial features are often used to identify a person. However, when the image quality at the end camera is poor, identification based on faces becomes almost impractical. To overcome this problem, many researchers have used outlook characteristics to re-identify a person. Despite its widespread use in security, traffic, and commercial settings, person re-ID systems face many challenges such as variations in lighting, viewing points~\cite{karanam2015person}, complex backgrounds, and outfits worn by individuals~\cite{ye2021deep}. In early research, hand-crafted features are constructed from clothes or body shapes~\cite{matsukawa2016hierarchical, farenzena2010person}. One of their greatest limitations is that they don't generalize well in a new environment as they are designed based on a specific set of assumptions. However, with the advancement of technology, deep learning has been widely studied and applied to extract features automatically. It shows inspiring results on different benchmarks and may be more robust in practice. 
+\subsection{Person Re-Identification}
 
-Person Re-ID is a crucial component of a human monitoring system, it must be used to re-identify the person who moves across cameras. Nevertheless, deploying the Re-ID system based on deep learning with many cameras can be complex, costly, and problematic in scaling.
 
 \label{sec:reidsystem}
-\subsection{Edge computing in AI}
-AI is becoming more and more important and appearing more often in our human daily lives. In recent years, the development of IoT~\cite{taivalsaari2018development, sworna2021towards, lakhwani2019development} has promoted the development of AI under a mass amount of provided data from end devices. Because of these huge amounts of data generated from IoT, it is a big challenge for traditional centralized cloud servers to process all of this data. Moreover, AI applications also require a vast amount of computing which will put a burden on centralized servers. At the same time, the rapid advancement of computing infrastructures has made edge computing prevalent in many fields~\cite{singh2023edge}. Furthermore, the breakthrough of lightweight deep learning models developed in recent years~\cite{agarwal2020lightweight} has enabled edge devices to have the capability to conduct computing for AI tasks at the end level which can alleviate the working burden of a centralized server~\cite{sandler2018mobilenetv2}. In addition, they are also portable, easy to scale up, and cheaper than normal computers.
+\subsection{Edge Computing in AI}
 
-For these reasons, building a system capable of conducting deep learning-based person Re-ID at the edge level becomes extremely important and practical nowadays. A human monitoring system with multiple cameras can use edge computing to alleviate the computing stress on the server.
 
 \section{Foundation theory}
 \label{sec:foundtheo}
 \subsection{Object detection}
 \label{sec:objdect}
-The first phase of my proposed module is detecting humans in the input frame. Object detection is an important task in computer vision that identifies specific objects within an image. This method is extensively utilized in numerous areas, including medicine, robotics, and surveillance. One of the famous traditional object detection algorithms is the use of the histogram of oriented gradients with support vector machine~\cite{pang2011efficient}. With the advancement of AI technology, object detection models based on deep learning have outperformed traditional ones. A model named Regions with CNN Features (R-CNN)~\cite{girshick2014rich} has substantially improved the performance of object detection tasks. This algorithm has used convolutional neural networks (CNN)~\cite{o2015introduction} in combination with a region proposition algorithm which helps it to accurately identify objects in images and classify them. There are many later improvements based on R-CNN such as Fast R-CNN~\cite{girshick2015fast} and Faster R-CNN~\cite{ren2015faster}. Despite showing inspiring accuracy, these two-stage architectures have slow inference speeds and can not be implemented to solve tasks that required low latency. In contrast, You Only Look Once (YOLO)~\cite{redmon2016you}, a real-time single-stage model, has shown a great performance in both accuracy and latency. YOLO will divide the image into a grid of cells and predict the detection score, class probability, and bounding box coordinates for each cell. YOLOv5~\cite{glenn_jocher_2022_7347926}, an improved version of the original YOLO,  has achieved better accuracy and had a very short inference time which makes it become an ideal selection for real-time applications.
+
+Object detection technology finds applications across numerous domains including automatic traffic violation systems, identification of unfamiliar persons, digital attendance systems, and autonomous robotic vehicles. The advent of deep learning has dramatically enhanced object detection capabilities. Region-Based Convolutional Neural Networks (R-CNN) \cite{girshick2014richfeaturehierarchiesaccurate} represented one of the pioneering breakthroughs in this area, combining CNN architectures \cite{oshea2015introductionconvolutionalneuralnetworks} with region proposal mechanisms to achieve accurate object localization and classification in images. Subsequent iterations, Fast R-CNN \cite{girshick2015fastrcnn} and Faster R-CNN \cite{ren2016fasterrcnnrealtimeobject}, were developed to enhance both processing speed and detection precision compared to the original model. Despite these improvements in detection performance, the multi-step processing pipeline made these approaches impractical for real-time applications.
+
+Modern frameworks such as Detectron2 \cite{Merz_2023} and EfficientDet \cite{tan2020efficientdetscalableefficientobject} have pushed object detection forward considerably. Detectron2 offers flexible deployment of high-performing models but demands extensive setup and typically involves computationally heavy architectures, making it unsuitable for real-time or resource-limited environments. EfficientDet provides a more practical option for devices with constrained resources, though it may struggle to meet strict real-time performance criteria.
+
+You Only Look Once (YOLO) addresses the limitations of multi-stage detection approaches by reformulating object detection as a single regression problem. YOLO processes the entire image in one forward pass, directly predicting bounding boxes and class probabilities from full images. This unified architecture enables real-time performance while maintaining reasonable accuracy for many applications.
+
+The YOLO family has evolved through multiple iterations, with each version improving upon speed-accuracy trade-offs. YOLOv11 \cite{khanam2024yolov11overviewkeyarchitectural}, in particular, offers several model variants ranging from nano (yolo11n) to extra-large (yolo11x) configurations. The nano variant is specifically designed for resource-constrained environments, featuring significantly reduced parameters and computational requirements while preserving essential detection capabilities.
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=\linewidth]{Figure/yolov5_overview.png}
-\caption{The overview architecture of YOLOv5~\cite{glenn_jocher_2022_7347926}.}
-\label{fig:yolov5}
+\includegraphics[width=\linewidth]{Figure/yolov11.png}
+\caption{ Key architectural modules in YOLO11~\cite{khanam2024yolov11overviewkeyarchitectural}.}
+\label{fig:yolov11}
 \end{figure}
 
-YOLOv5~\cite{glenn_jocher_2022_7347926} is a model in the YOLO family. It is a single-stage object detection model that has three main parts: backbone, neck, and head as illustrated in Figure~\ref{fig:yolov5}. Especially, YOLOv5n, the nano version of YOLOv5 is very lightweight, it has 1.9 million parameters which makes it a suitable model for edge computing. Among all versions in the family of YOLO, YOLOv5n is the most lightweight and is suitable for deployment on edge devices.
+A significant advancement in YOLOv11 is the integration of thhe C2PSA (Convolutional
+block with Parallel Spatial Attention) component, which enhances spatial attention capabilities beyond previous YOLO iterations. The C2PSA blockenables the model to focus more effectively on critical regions within images by inaplementing parallel spatial
+attention mechanisms. This enhancement is particularly beneficial for detecting objects of varying sizes and positions, addressing common challengees in complex visual environments with partially occluded or small objects. The retention of the Spatial Pyramid Pooling - Fast (SPPF) blockfrom previous versions, combined with the new C2PSA component, creates a compreehensive feature processing pipeline that balances computational efficiency with enhancced spatial awareness.
 
-The backbone is a pre-trained CNN model which is used to extract features from input images. The feature extraction process will gradually decrease the spatial resolution of the tensor while increasing its number of channels. Obtaining the output from different layers gives us features from varied spatial resolutions. Moreover, the model neck will combine features from different scales from the backbone to build feature pyramids. This will give the model the ability to be robust with objects of different sizes and scales in images. Finally, from the output of the neck, the model head will take responsibility for predicting classes of objects, corresponding confidence scores, and bounding boxes.
-
-Because of its lightweight and accurate characteristics, YOLOv5n is utilized in my module which is deployed on resource-constrained devices to detect humans from input frames.
+For edge-based human monitoring applications, YOLOv11n provides an optimal balance between detection performance and computational efficiency. Its lightweight architecture enables deployment on edge devices for real-time person detection, serving as the foundation for subsequent tracking and Re-ID processes in distributed camera networks.
 
 \subsection{Object tracking}
 \label{sec:objtrack}
@@ -66,13 +69,6 @@ Deep metric learning is a special type of metric learning which utilizes deep ne
 
 Triplet loss~\cite{schroff2015facenet} is one of the most popular loss functions in deep metric learning. It has the same objective as other types of distance-based loss functions which is shortening distances between similar data points and enlarging those of dissimilar data points. While contrastive loss~\cite{hadsell2006dimensionality} directly optimizes the above objective, triplet loss achieves that goal in an indirect way. It motivates dissimilar pairs to have distances larger than any similar pairs by a chosen margin which is illustrated in Figure~\ref{fig:triplet}. Triplet Loss tries to minimize the distance between an anchor and a positive data point which have the same label to be smaller than the distance between the anchor and a negative data point which have a different label plus the margin constant.
 
-\begin{figure}[h!]
-\centering
-\includegraphics[width=\linewidth]{Figure/triplet.pdf}
-\caption{The learning process of triplet loss.}
-\label{fig:triplet}
-\end{figure}
-
 The triplet loss function can be defined as below:
 \begin{equation}\label{eq:triplet}
     Loss = max(d(a, p) - d(a, n) + m, 0)
@@ -95,13 +91,6 @@ With mentioned capabilities, hard triplet loss plays a vital role in building my
 \subsection{MobileNetV2}
 \label{sec:mbv2}
 MobileNetV2~\cite{sandler2018mobilenetv2} is a lightweight neural network architecture designed for resource-constrained devices. MobileNetV2 significantly reduces the number of parameters and inference time while still achieving good accuracy. The author has introduced new bottleneck modules with inverted residual architecture.
-
-\begin{figure}[h!]
-\centering
-\includegraphics[width=0.65\linewidth]{Figure/mbv2_bottleneck.pdf}
-\caption{Bottleneck modules of MobileNetV2.}
-\label{fig:bottleneck}
-\end{figure}
 
 Figure~\ref{fig:bottleneck} shows bottleneck modules of MobileNetV2 with residual connection on the left one and depth-wise layer with stride equal to two on the right one to shrink the representations. These modules take a low-dimensional tensor as input. After that, this tensor is enlarged to a high-dimensional space through a $1\times1$ point-wise convolution. This point-wise convolutional layer computes linear combinations of input channels and produces an output tensor with a preferred number of channels. Next, a $3\times3$ depth-wise convolution is applied followed by a rectified linear unit (ReLU) activation function. This convolutional layer operates by applying a distinct filter to each input channel, after which all resulting output tensors are combined into a single tensor. Finally, another $1\times1$ point-wise convolutional layer is applied to project the tensor back to a low-dimensional space. In addition, in the left module, a residual connection is used to connect two low-dimensional representations. This design improves backpropagation and costs less memory than usual residuals. On the other hand, the second module with a stride equal to two in the depth-wise layer helps to shrink the height and width of the tensor gradually. These architectures help the model to reduce a lot of parameters while maintaining accuracy. Therefore, models which are customized from MobileNetV2 have the advantages to be deployed on edge devices with limited computing capability.
 

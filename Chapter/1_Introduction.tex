@@ -1,54 +1,35 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-In the first chapter, I will discuss the motivation leading to the birth of this thesis and the state of current solutions. Based on these, I will introduce my proposed solution for human monitoring on edge devices based on computer vision.
+In this first chapter, I will explain why I decided to write this thesis and what the current solutions for human monitoring are like. Then, I will introduce my feasible solution for monitoring people using computer vision on a hybrid edge-server microservices architecture, which is beneficial for SMEs due to its cost-effectiveness and scalability.
 
 
 \section{Motivation}
 \label{sec:motivation}
-Nowadays, managing human resources is not an easy task for businesses. Every year, there is not only an increase in the number of enterprises but also an increase in the number of large-size enterprises. Between 2016 and 2019, there was an average annual increase of 9.8\% in the number of enterprises, which is higher than the average annual growth rate of 8.1\% observed between 2011 and 2015~\cite{so_luong_doanh_nghiep}. With the increasing size of businesses, it is impractical for employers to manage people by traditional methods because they are time-consuming and inefficient. These problems have forced businesses to find a new way to manage human resources. Today, with the fast-paced developments of technology, especially AI, more and more businesses digitize their processes and replace inefficient, human-operated tasks with machines and algorithms. There is a high demand~\cite{demand} for a system that can have the timekeeping ability, maintain security, and improve productivity. If there is a system that can solve human monitoring problems and provide useful information to boost the productivity of businesses, it can be widely used in many more areas and places like supermarkets, shopping malls, or galleries.
 
-Modern technology provides employers with plenty of more efficient ways to manage human resources~\cite{elharrouss2021review}. They can be identifications using magnetic cards or fingerprints each time an employee enters or exits the office~\cite{neves2016biometric}. Another more advanced option is to use facial recognition algorithms based on deep learning to authenticate employees each time they enter or leave the office. However, no matter which method is used, they have their limitations. Most of the widely used management systems in Vietnam such as Base HRM~\cite{basehrm} or AMIS HRM~\cite{amishrm}, only focus on timekeeping and security problems, they don't provide any statistics of people inside the building which bring a lot of value to the company. Moreover, deep learning-based methods like automatic facial authentication with great using frequency require a strong and expensive centralized server, and they are hard to scale up the system. Most of the edge devices in these systems only send images to the server and the deep learning models will be executed in the server. This will put a lot of computing pressure on the server when the number of edge devices increases.
-
-On the other hand, with the rapid development of computing infrastructures, there is an increase in the utilization of edge devices across various industries because of the advantages they offered. They are portable, easy to scale up, and cheaper than normal computers~\cite{sarwar2019machine}. Moreover, nowadays advanced lightweight algorithms enable costly computing methods like deep learning models to be implemented on resource-constrained devices. These lightweight models have high accuracy while having a very light architecture~\cite{zhang2018shufflenet, sandler2018mobilenetv2}. Taking advantage of the availability of surveillance cameras in offices and supermarkets, these edge devices can be quickly and economically integrated to create comprehensive monitoring systems.
-
-There is a significant demand for a human monitoring system that can automatically monitor individuals and provide valuable statistical data on everyone within a building. Additionally, it is important that the computational workload of this system be distributed among edge devices to prevent overloading the system. Therefore, this study researches and develops an automatic human monitoring module based on computer vision that can be implemented on resource-constrained devices. These edge devices then can be used in a management system.
+Small and Medium-sized Enterprises (SMEs) 
 
 \section{Objectives and scope of Thesis} 
 \label{sec:objectives}
-Section~\ref{sec:motivation} shows various ways of managing human resources that are no longer appropriate for current situations or have their own weaknesses. The first objective of this thesis is to build a stand-alone remote human monitoring module, implemented on edge devices, Jetson Nano. The module consists of three main components: human detection, human feature extraction, and human tracking. The proposed module can detect humans, track them, and give each individual identity features based on their outlook. The output of this module can later be integrated into a bigger management system to do timekeeping, maintain security, and increase business productivity by analyzing data provided by multiple edge devices.
-
-Moreover, to lower the workload of the server, the second objective is to implement deep learning models directly on edge devices. This module takes the input source from a connected USB camera. The models are tailored or optimized to be suitable for deployment on Jetson Nano which has limited computing resources. To achieve faster inference speed, this thesis also presents a customized feature extraction model specifically for resource-constrained devices. %This proposed model must have an inference time on Jetson Nano of less than 5 milliseconds.
-
-The scope of this thesis is limited to a working prototype implemented on Jetson Nano of a human monitoring module constructed from lightweight models and algorithms. Due to cost constraints, there are only a total of three Jetson Nano devices, one is placed at the entrance, and the remaining are placed inside two different rooms. The operational area of the system is limited to the observed areas of implemented cameras. Only people who have been registered in the system are allowed to enter the room. Jetson Nano uses attached cameras to monitor rooms. AI models are executed directly on Jetson Nano to reduce the load on the server. Collected information is sent from multiple Jetson Nano devices and processed by the server. The results from the server can be observed in an application developed by other members of my research group.
 
 \section{Tentative solution}
 \label{sec:solution}
-Based on the presented objectives in Section~\ref{sec:objectives}, the work composes of two main parts.
-
-In the first part, based on researched technologies, the pipeline of the module will be proposed. The module will consist of three main components: human detection, human feature extraction, and human tracking which will be implemented in Jetson Nano. The human detection model will be carefully selected among state-of-the-art models based on the criteria of accuracy and lightness so that it can be run on Jetson Nano. In addition, a tracking algorithm will also be implemented on Jetson Nano to utilize the output of the feature extraction model and track humans from the input source.
-
-The second part includes building a tailored, lightweight architecture of the feature extraction model specifically for limited computing resources devices and benchmarking the proposed model with current state-of-the-art models on mAP and Rank-1 metric over a well-known public dataset CUHK03-labeled. Moreover, all the models will be further optimized to be faster on Jetson Nano. A prototype will be deployed in practice for testing purposes.
 
 \section{Contributions}
 \label{sec:contribution}
-This thesis contains two main contributions as follows:
 
+This thesis presents two main contributions:
 \begin{enumerate}
-\item A full pipeline of the module for human monitoring tasks on edge devices is proposed. The module contains three main components: a human detection model, a feature extraction model, and a tracking algorithm.
-\item This thesis also proposed a tailored lightweight feature extraction model to make it practical to run on resource-constrained devices.
+    \item An application is deployed on hybrid edge-server devices and uses a microservices architecture, allowing for easy system scaling (increasing the number of cameras). It includes:
+    \begin{itemize}
+        \item A custom-trained, lightweight human detection model specifically designed for CPU-based, resource-constrained edge devices.
+        \item A vector database optimization algorithm for efficient identity retrieval. This uses a person's metadata (gender) to reduce the search space, improving retrieval speed and accuracy.
+    \end{itemize} 
+    \item This thesis also provides an interactive web application. It lets users monitor the system, view live camera streams, and search for people using their metadata.
 \end{enumerate}
 
 \section{Organization of Thesis}
 \label{sec:organize}
-The remaining of this thesis will be organized as follow:
-
-Chapter~\ref{chapter:literature} will discuss some related works and foundation theories of existing detection, feature extraction, and tracking algorithms. The proposed module will be built based on these investigations.
-
-Chapter~\ref{chapter:method} will introduce the proposed module on edge devices. This module contains three main components: human detection model, human feature extraction model, and human tracking algorithm. The flow of this module and details about each component will be presented. Moreover, the hardware implementations and utilization of frameworks are also provided in this chapter.
-
-Chapter~\ref{chapter:experiment} will present evaluations of deep learning models and some results of the deployed system. The settings and datasets used for evaluations are also provided. Based on obtained experimental results, discussions will be made.
-
-Chapter~\ref{chapter:conclusion}, the final chapter, will provide a summary of the achieved results. Additionally, suggestions for future improvements will also be included.
+% Chapter~\ref{chapter:literature} 
 
 \end{document}
