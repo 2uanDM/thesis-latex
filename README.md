@@ -1,1 +1,1 @@
-# Thesis latex template
+# Thesis Re-Identification

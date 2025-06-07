@@ -47,3 +47,5 @@ temp/
 *.run.xml
 *.pdf
 !main.pdf
+
+**/__pycache__
