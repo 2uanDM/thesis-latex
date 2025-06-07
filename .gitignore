@@ -42,3 +42,8 @@ Thumbs.db
 tmp/
 temp/ 
 .venv
+
+*-blx.bib
+*.run.xml
+*.pdf
+!main.pdf
