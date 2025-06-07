@@ -1,19 +1,32 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-In this first chapter, I will explain why I decided to write this thesis and what the current solutions for human monitoring are like. Then, I will introduce my feasible solution for monitoring people using computer vision on a hybrid edge-server microservices architecture, which is beneficial for SMEs due to its cost-effectiveness and scalability.
+This chapter establishes the foundation for this thesis by exploring why SMEs need accessible person re-identification solutions despite facing significant financial constraints. I will present the research objectives, introduce a feasible hybrid edge-server architecture that makes advanced customer monitoring affordable for resource-constrained businesses, and detail the main contributions including a lightweight detection model and optimized vector database system designed specifically for SME deployment scenarios.
 
 
 \section{Motivation}
 \label{sec:motivation}
 
-Small and Medium-sized Enterprises (SMEs) 
+Small and Medium Enterprises (SMEs) across various industries are facing an extraordinary challenge in today's competitive market. Customer expectations have fundamentally shifted from simple product transactions to demanding rich, personalized experiences. This change is particularly evident in sectors like Food \& Beverage (F\&B) and retail, where 65\% of customers report that positive experiences influence their purchasing decisions more than traditional advertising \cite{customer_experience}.
+
+SMEs operate under much tighter financial constraints than large corporations. In the F\&B sector alone, 45\% of businesses report that raw materials account for over 30\% of their selling prices, leaving little room for major technology investments \cite{customer_experience2}. Over 60\% of F\&B businesses have experienced revenue decreases while facing rising operational costs including rent, labor, and materials \cite{customer_experience3}.
+
+This creates an "innovation deadlock" where SMEs:
+\begin{itemize}
+    \item Recognize the critical need for better customer experience solutions.
+    \item Understand that technology could provide competitive advantages.
+\end{itemize}
+
+Modern AI technologies like Person Re-identification (Re-ID) offer powerful solutions for understanding customer behavior, optimizing store layouts, and creating personalized experiences. Re-ID systems can seamlessly track customer movements across different areas of a store, measure how long customers spend in specific sections, and identify popular pathways and bottlenecks. This technology enables businesses to provide tailored assistance, highlight relevant promotions based on customer interests, and optimize staff allocation in real-time.
+
+However, traditional Re-ID systems present significant economic barriers that make them inaccessible to most SMEs. Conventional implementations require expensive GPU-powered edge devices. When scaled across multiple cameras needed for comprehensive coverage, these costs become prohibitive.
+
+The high computational requirements of traditional Re-ID systems also demand powerful central servers for data processing and storage, further inflating the total cost of ownership. For SMEs already struggling with thin profit margins, these substantial upfront investments often exceed their entire annual technology budgets.
+
+Therefore, there is an urgent need for cost-effective, scalable Re-ID solutions specifically designed for SME deployment. Such systems should significantly reduce hardware costs by leveraging efficient CPU-based processing at the edge, minimize complex infrastructure requirements, and provide meaningful customer experience improvements that allow SMEs to compete on service quality rather than just price. By democratizing access to intelligent customer interaction technologies, we can enable businesses of all sizes to enhance customer satisfaction, build loyalty, and drive sustainable growth in an increasingly experience-driven marketplace.
 
 \section{Objectives and scope of Thesis} 
 \label{sec:objectives}
-
-\section{Tentative solution}
-\label{sec:solution}
 
 \section{Contributions}
 \label{sec:contribution}
@@ -24,8 +37,8 @@ This thesis presents two main contributions:
     \begin{itemize}
         \item A custom-trained, lightweight human detection model specifically designed for CPU-based, resource-constrained edge devices.
         \item A vector database optimization algorithm for efficient identity retrieval. This uses a person's metadata (gender) to reduce the search space, improving retrieval speed and accuracy.
-    \end{itemize} 
     \item This thesis also provides an interactive web application. It lets users monitor the system, view live camera streams, and search for people using their metadata.
+\end{itemize} 
 \end{enumerate}
 
 \section{Organization of Thesis}
