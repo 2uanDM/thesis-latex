@@ -1,0 +1,64 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+Building upon the theoretical foundations established in Chapter~\ref{chapter:literature}, this chapter presents a comprehensive examination of (i) the person Re-ID module architecture and its integration within the hybrid edge-server management system, (ii) detailed specifications of the proposed lightweight Re-ID module optimized for SME deployment, (iii) edge device hardware implementation strategies, (iv) the deployment of microservices frameworks and (v) how the system utilizes person metadata (gender) to enhance the efficiency of identity retrieval processes.
+
+\section{Overview}
+\label{sec:overview}
+
+This research presents a comprehensive, scalable person Re-ID system that utilizes the capabilities of distributed edge devices. The proposed architecture consists of three primary components: edge computing devices, a central processing server, and a message broker cluster implemented with Apache Kafka. Each has distinct roles to efficiently distribute tasks and optimize performance.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{Figure/system_overview.png}
+    \caption{System overview of the hybrid edge-server person Re-ID pipeline showing the distributed setup with edge devices doing human detection, Kafka message broker cluster asynchronously handling communication, and central server managing model inference support for identity matching across multiple cameras.}
+    \label{fig:system_overview}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Edge devices (Producers)}: Each edge device is responsible for capturing and preprocessing video streams from surveillance cameras. Given the limited resources typically available at the edge—specifically, a CPU-only setup with minimal specifications (1 CPU at 3.5 GHz and 1 GB RAM, roughly equivalent to 7.5 GFLOPS) using x86 architecture (Intel or AMD processors)—the device focuses solely on performing essential tasks like human detection and frame compression. Notably, no GPU acceleration is required here since these initial processing tasks, particularly when using highly optimized models, can be executed efficiently on a CPU. To meet the constraints of such limited hardware, we utilize YOLOv11n, the smallest and most compact version of the YOLOv11 model family, ensuring acceptable inference speed and latency without specialized accelerators. This approach enables reliable real-time processing at the edge while conserving resources for more demanding tasks on the server side.
+
+    
+    \item \textbf{Kafka message broker cluster}: A cluster of three Kafka brokers ensures high availability, fault tolerance, and reliable message management. Each edge device sends messages asynchronously to this Kafka cluster, packaging compressed video frames (approximately 300 KB each) and bounding box coordinates using a structured format defined by Apache Avro schemas. Kafka efficiently handles message buffering and transmission, preventing data loss even during temporary network disruptions. This Kafka cluster is deployed as a containerized service using Docker, simplifying management, scalability, and deployment across the hybrid infrastructure.
+    
+    \item \textbf{Centralized server (Consumers)}: The centralized server manages several internal services critical to the Re-ID pipeline, including model serving frameworks, vector databases, and tracking modules. Equipped with a robust GPU, this server is optimized for computationally intensive tasks such as feature extraction, classification (e.g., gender), and vector similarity searches for identity matching. Multiple Kafka consumers are deployed, with each consumer dedicated to processing data streams from a specific edge device (camera). By interacting with a shared vector database, these consumers enable accurate cross-camera identity matching. This design allows effective parallel processing of multiple video streams, significantly enhancing scalability and real-time performance in complex multi-camera environments.
+\end{itemize}
+
+This division of labor among the components ensures optimal resource utilization and robust system performance, delivering efficient, accurate, and scalable person Re-ID in real-world deployments.
+
+
+\section{Kafka cluster}
+\label{sec:kafka_cluster}
+\input{Chapter/3_2_Kafka}
+
+
+\section{Edge devices}
+\label{sec:edge_devices}
+\input{Chapter/3_3_Edge}
+
+\section{Centralized server}
+\label{sec:centralized_server}
+
+\subsection{Overview}
+
+\subsection{Model serving service}
+
+    \subsubsection{Ray Serve configuration}
+
+    \subsubsection{Feature extraction}
+
+    \subsubsection{Gender classification}
+
+\subsection{Vector database service}
+
+    \subsubsection{Qdrant configuration}
+
+    \subsubsection{Identity embedding storage}
+
+    \subsubsection{Identity retrieval}
+
+\subsection{Consumers}
+
+\section{Web application}
+
+\end{document}
