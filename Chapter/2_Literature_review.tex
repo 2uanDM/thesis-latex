@@ -154,12 +154,12 @@ Deploying person Re-ID and lightweight classification models effectively in hybr
 
 To balance these trade-offs, Ray Serve~\cite{ray_serve_docs} has emerged as an attractive framework, offering notable flexibility and ease of integration. Specifically designed for scalable deployments, Ray Serve supports serving multiple models simultaneously, dynamically composing inference pipelines, and efficiently managing replicas to maximize GPU utilization. Additionally, it seamlessly integrates with FastAPI, allowing developers to directly embed their inference endpoints within Python-based microservice architectures. This combination of flexible model orchestration, autoscaling capabilities, and developer-friendly integration makes Ray Serve particularly suited for deploying lightweight person Re-ID models like OSNet and LightMBN, as well as efficient image classification models, within hybrid edge–server setups.
 
-\subsection{Containerization}
+\subsection{Containerization and orchestration}
 \label{sec:containerization}
 
 Containerization is a foundational technology in modern DevOps and microservices architectures, enabling applications and their dependencies to be packaged into lightweight, isolated units. This approach simplifies development workflows and significantly improves service portability. By encapsulating services within containers, they can be deployed, scaled, and updated independently, which facilitates more efficient version control and lifecycle management in distributed systems.
 
-Among the various container technologies, Docker \cite{docker_intro} is a widely used tool for building and running containers. Developers define application environments in a `Dockerfile`, which ensures consistent behavior across both staging and production environments. 
+Among the various container technologies, Docker \cite{docker_intro} is a widely used tool for building and running containers. Docker Engine serves as the core runtime that manages container lifecycle, including creation, execution, and resource allocation. Developers define application environments in a `Dockerfile`, which contains step-by-step instructions for building container images, including base operating system, dependencies, configuration files, and application code. This declarative approach ensures consistent behavior across both staging and production environments, eliminating the common "it works on my machine" problem. The Docker Engine utilizes Linux kernel features such as namespaces for process isolation and cgroups for resource management, enabling multiple containers to run securely on a single host without interference. Additionally, Docker's layered filesystem architecture allows for efficient image storage and sharing, where common layers are reused across different containers, reducing storage overhead and improving deployment speed.
 
 \begin{figure}[htbp]
     \centering
