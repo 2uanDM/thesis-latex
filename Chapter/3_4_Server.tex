@@ -80,7 +80,7 @@ applications:
 
 \textbf{Resource Allocation Strategy}: The deployment specifies 4 replicas of the ModelService, each allocated 2.0 CPU cores and 0.25 GPU units. This fractional GPU allocation enables efficient GPU memory sharing, allowing multiple model inference processes to utilize the same GPU simultaneously. With 4 replicas sharing GPU resources, the system can achieve optimal GPU utilization while maintaining parallel processing capabilities.
 
-The multiple replica strategy addresses a fundamental challenge in serving lightweight neural networks on GPU hardware. The deployed models are relatively compact: OSNet contains approximately 2 million parameters (~8MB model size), while EfficientNet B0 comprises around 5.3 million parameters (~21MB model size). These small model footprints significantly underutilize GPU computational resources when processed sequentially through traditional approaches such as iterative for-loops over bounding box detections.
+The multiple replica strategy addresses a fundamental challenge in serving lightweight neural networks on GPU hardware. The deployed models are relatively compact: OSNet contains approximately 2 million parameters (8MB model size), while EfficientNet B0 comprises around 5.3 million parameters (21MB model size). These small model footprints significantly underutilize GPU computational resources when processed sequentially through traditional approaches such as iterative for-loops over bounding box detections.
 
 Sequential processing of individual person regions results in GPU underutilization due to insufficient computational load per inference operation. Modern GPUs are designed for high-throughput parallel computation, but lightweight models cannot maximize usage of the available CUDA cores and tensor processing units. This mismatch leads to a processing bottleneck where the system becomes constrained by sequential execution rather than GPU computational capacity, resulting in suboptimal requests per second (RPS) performance that plateaus well below the hardware's theoretical maximum.
 
@@ -105,7 +105,7 @@ The feature extraction component represents the core computational module of the
     The cold start problem in deep learning model serving refers to the initial latency penalty incurred during the first inference request, caused by GPU memory allocation, CUDA kernel compilation, and model weight loading operations. To mitigate this issue, the Models Service implements a comprehensive warmup strategy during initialization through the \texttt{\_warmup()} method. This approach creates dummy input tensors with the exact dimensions required by each model: \texttt{torch.randn(1, 3, 256, 128)} for OSNet and LightMBN models, and \texttt{torch.randn(1, 3, 224, 224)} for the EfficientNet gender classification model. By executing forward passes with these dummy inputs during service startup, the system pre-allocates GPU memory, compiles necessary CUDA kernels, and initializes all computational graphs, ensuring that subsequent real inference requests experience minimal latency without the overhead of first-time GPU operations.
     
     \item \textbf{Image preprocessing}:\\
-    Initially, image bytes from the API are in raw bytes format, so we need to decode them to \texttt{Image.PIL} format using \texttt{BytesIO} and the function \texttt{Image.open()}. The preprocessing pipeline ensures consistent input format by converting non-RGB images to RGB mode using \texttt{Image.convert("RGB")}, which is essential for maintaining color channel consistency across different input image formats.
+    Initially, image bytes from the API are in raw bytes format, so we need to decode them to \texttt{Image.PIL} format using \\ \texttt{BytesIO} and the function \texttt{Image.open()}. The preprocessing pipeline ensures consistent input format by converting non-RGB images to RGB mode using \texttt{Image.convert("RGB")}, which is essential for maintaining color channel consistency across different input image formats.
 
     The system implements two distinct preprocessing pipelines optimized for different model requirements:
     
@@ -113,7 +113,8 @@ The feature extraction component represents the core computational module of the
     
     \textbf{Classification model (EfficientNet)}: Images are resized to 224×224 pixels, the standard input size for EfficientNet architectures, and normalized using the same ImageNet statistics to maintain consistency with pre-training data distribution.
     
-    Both pipelines convert images to PyTorch tensors using \texttt{transforms.ToTensor()}, which automatically scales pixel values from [0, 255] to [0, 1] range and reorders dimensions from HWC (Height-Width-Channel) to CHW (Channel-Height-Width) format required by PyTorch models.
+    Both pipelines convert images to PyTorch tensors using \\
+    \texttt{transforms.ToTensor()}, which automatically scales pixel values from [0, 255] to [0, 1] range and reorders dimensions from HWC (Height-Width-Channel) to CHW (Channel-Height-Width) format required by PyTorch models.
     
     \item \textbf{OSNet model}:\\
     The OSNet (Omni-Scale Network) model serves as the primary feature extraction backbone, initialized with \texttt{osnet\_x1\_0} architecture containing 1000 output classes for comprehensive feature representation. The model is loaded with pre-trained weights (\texttt{pretrained=True}) and configured with softmax loss for optimal person Re-ID performance. OSNet's distinctive architecture employs omni-scale convolutions that capture multi-scale features simultaneously, making it particularly effective for person Re-ID tasks where scale variations are common due to different camera distances and viewing angles. The model processes 256×128 input images and outputs feature vectors that capture discriminative person characteristics essential for cross-camera identity matching.
@@ -125,11 +126,11 @@ The feature extraction component represents the core computational module of the
     The Models Service exposes three distinct API endpoints, each optimized for different usage patterns and performance requirements:
     
     \begin{itemize}
-        \item \textbf{Single image API} (\texttt{/embedding}): Designed for low-latency applications requiring immediate response, this endpoint processes individual images through the \texttt{extract\_features\_single} method. It prioritizes response time over throughput, making it suitable for interactive applications or real-time processing scenarios where each request must be handled independently without waiting for batch formation.
+        \item \textbf{Single image API} (\texttt{/embedding}): Designed for low-latency applications requiring immediate response, this endpoint processes individual images through the \texttt{extract\_features\_single} method. It prioritizes response time over throughput, making it suitable for interactive applications or real-time processing scenarios where each request must be handled\\independently without waiting for batch formation.
         
-        \item \textbf{Dynamic batching API} (\texttt{/embedding/batch}): Leverages Ray Serve's automatic batching capabilities with \texttt{@serve.batch} decorator configured for maximum batch size of 32 images and 10ms timeout \\(\texttt{batch\_wait\_timeout\_s=0.01}). This endpoint automatically groups concurrent requests into batches, optimizing GPU utilization by processing multiple images simultaneously while maintaining acceptable latency. The dynamic batching approach balances throughput optimization with responsiveness, automatically adapting to varying request loads.
+        \item \textbf{Dynamic batching API} (\texttt{/embedding/batch}): Leverages Ray Serve's automatic batching capabilities with \texttt{@serve.batch} decorator configured for maximum batch size of 32 images and 10ms timeout \\(\texttt{batch\_wait\_timeout\_s=0.01}). This endpoint automatically groups concurrent requests into batches, optimizing GPU utilization by processing multiple images simultaneously while maintaining acceptable latency. The dynamic batching approach balances throughput optimization with\\responsiveness, automatically adapting to varying request loads.
         
-        \item \textbf{True batching API} (\texttt{/embedding/true-batch}): Processes multiple images submitted as a single request through the \texttt{List[UploadFile]} parameter, enabling clients to explicitly control batch composition. For PyTorch models, the system utilizes matrix calculations to stack individual image tensors into a single batch tensor using\\ \texttt{torch.cat(processed\_images, dim=0)}, then performs inference on the entire batch vector simultaneously. This approach maximizes computational efficiency by leveraging GPU's parallel processing capabilities for matrix operations, significantly reducing inference time compared to sequential processing. The batched inference returns results for all images in a single forward pass, eliminating the overhead of individual request processing and maximizing GPU computational throughput for scenarios where multiple images are available simultaneously, such as processing video frame sequences or bulk image analysis tasks.
+        \item \textbf{True batching API} (\texttt{/embedding/true-batch}): Processes multiple images submitted as a single request through the \texttt{List[UploadFile]} parameter, enabling clients to explicitly control batch composition. For PyTorch models, the system utilizes matrix calculations to stack individual image tensors into a single batch tensor using\\ \texttt{torch.cat(processed\_images, dim=0)}, then performs inference on the entire batch vector simultaneously. This approach maximizes\\ computational efficiency by leveraging GPU's parallel processing capabilities for matrix operations, significantly reducing inference time compared to sequential processing. The batched inference returns results for all images in a single forward pass, eliminating the overhead of individual request processing and maximizing GPU computational throughput for scenarios where multiple images are available simultaneously, such as processing video frame sequences or bulk image analysis tasks.
     \end{itemize}
     
     Each API endpoint returns structured responses containing feature vectors, dimensional information, and processing metadata, enabling clients to select the most appropriate processing mode based on their specific latency and throughput requirements.
@@ -151,12 +152,102 @@ The inference process applies softmax activation to the model's logits using \te
 
 \textbf{Search Space Optimization}: The primary motivation for gender classification lies in its ability to significantly reduce computational overhead during identity verification queries. By classifying detected persons into gender categories, the system can partition the vector database and limit similarity searches to gender-specific subsets. This optimization reduces the average number of embedding comparisons by approximately 50\%, directly translating to faster query response times and improved system scalability. The gender-based partitioning strategy is particularly effective in surveillance scenarios where gender distribution is typically balanced, ensuring that both partitions contribute meaningfully to search space reduction without creating significant load imbalances.
 
+\subsection{ID Verifier Service}
+\label{sec:id_verifier_service}
+The ID Verifier Service implements an identity verification pipeline that combines gender-based search space partitioning with embedding similarity search to determine whether newly detected persons correspond to existing identities in the system database. This service operates as an essential component in the person Re-ID pipeline, receiving "non-verified" IDs from the tracking module and returning verified identity assignments with associated confidence scores.
+
+\subsubsection{Core Functionality and Gender-Based Partitioning}
+
+The service queries the Qdrant vector database using a two-stage verification approach: first applying gender classification results with confidence scores greater than 0.9 to partition the search space, then performing embedding similarity calculations within the relevant gender subset. The 0.9 confidence threshold for gender classification is strategically chosen to address several critical challenges in surveillance environments:
+
+\textbf{Occlusion Handling}: Bounding box occlusion represents a common problem in surveillance scenarios where persons are partially obscured by other objects, architectural elements, or other individuals in the scene. This issue frequently occurs during initial person appearance in video frames, when individuals enter the camera's field of view gradually or emerge from behind obstacles. Under these conditions, the gender classification model may produce erroneous predictions due to incomplete visual information, potentially leading to incorrect identity verification results by searching within the wrong gender subset.
+
+\textbf{Confidence Threshold Rationale}: The 0.9 confidence threshold ensures that only high-confidence gender predictions are used for search space partitioning. When gender classification confidence falls below this threshold, the system defaults to searching across all gender categories, maintaining verification accuracy at the cost of increased computational overhead. This adaptive approach balances processing efficiency with robustness against classification errors.
+
+\textbf{Fallback Mechanism}: For cases where gender confidence is below 0.9, the service implements a comprehensive search across all stored embeddings, ensuring that genuine identity matches are not missed due to uncertain gender predictions. This fallback strategy is particularly crucial in several challenging surveillance scenarios:
+
+\begin{itemize}
+    \item \textbf{Posterior View Detection}: When the person detection captures only the back view of an individual, gender classification models face significant challenges due to the absence of facial features and frontal body characteristics that typically inform gender prediction. Hair length, clothing style, and body silhouette from posterior angles often provide insufficient or ambiguous visual cues, resulting in low confidence scores that trigger the comprehensive search fallback.
+
+    \item \textbf{Severe Occlusion Cases}: Beyond partial occlusion, scenarios involving severe obstruction (such as individuals partially hidden behind vehicles, pillars, or other persons) result in incomplete visual information that degrades gender classification confidence. In these cases, the fallback mechanism ensures that identity verification can still succeed based on the visible portions of the person's embedding features.
+
+    \item \textbf{Extreme Lighting Conditions}: Poor illumination, backlighting, or high-contrast scenarios can obscure gender-indicative visual features, leading to uncertain gender predictions. The comprehensive search approach maintains verification capability even when environmental conditions compromise gender classification accuracy.
+
+    \item \textbf{Distance and Resolution Limitations}: When persons appear at significant distances from the camera, resulting in small bounding boxes with limited resolution, gender classification models may lack sufficient detail to make confident predictions. The fallback ensures that distant individuals can still be verified against the complete identity database.
+    
+\end{itemize}
+
+This fallback strategy maintains system reliability while optimizing performance for high-confidence cases, ensuring robust identity verification across diverse surveillance conditions and viewing angles.
+
+\subsubsection{Integration with Tracking Module}
+
+As illustrated in Figure \ref{fig:centralized_server_overview}, the ID Verifier Service maintains bidirectional communication with the tracking module through a structured data exchange protocol. The service receives newly detected person embeddings along with their associated metadata (including gender predictions, bounding box coordinates, and temporal information), processes these through the verification pipeline, and returns verified identity assignments with confidence scores and similarity metrics.
+
+The tracking module subsequently updates tracklet data with verified IDs, ensuring consistent identity maintenance across video frames and camera views. This integration enables the system to maintain identity consistency throughout person trajectories, even when individuals temporarily leave and re-enter camera coverage areas.
+
+\subsubsection{Database Query Optimization}
+
+The service leverages Qdrant's vector similarity search capabilities enhanced by metadata filtering to achieve optimal query performance. The gender-based partitioning strategy reduces the candidate pool by approximately 50\% for high-confidence gender predictions, directly improving query response times and system scalability. This optimization proves particularly effective in multi-camera \\environments where the same individual may appear across different camera feeds, requiring efficient cross-camera identity matching.
+
+\textbf{Similarity Computation}: The service employs cosine similarity calculations between query embeddings and stored identity vectors, with configurable similarity thresholds to balance precision and recall. The system maintains separate similarity thresholds for different scenarios (e.g., same-camera re-identification vs. cross-camera matching) to accommodate varying difficulty levels in identity verification tasks.
+
+\textbf{Scalability Considerations}: The partitioned search approach scales effectively with database size, as the computational complexity grows sub-linearly with the number of stored identities. This scalability advantage becomes more pronounced in large-scale surveillance deployments with extensive identity databases.
+
+\subsubsection{API Implementation and Performance}
+
+The ID Verifier Service exposes a RESTful API through a single endpoint (\texttt{/verify}) that processes individual person embeddings and gender predictions, returning comprehensive verification results including identity matches, confidence scores, and similarity metrics. The API is designed for high-throughput processing with the following characteristics:
+
+\textbf{Request Format}: The service accepts JSON payloads containing embedding vectors (512-dimensional for OSNet), gender predictions with confidence scores, and optional metadata such as camera identifiers and timestamps.
+
+\textbf{Response Structure}: The API returns structured responses containing verified identity assignments, similarity scores, matching confidence levels, and additional metadata required for tracking module integration.
+
 \subsection{Embedding Storage}
+
+Embedding storage is also a critical component of the identity management system, and it is responsible for persistently storing and retrieving body embeddings of identified individuals. This storage enables the system to re-identify people across frames and potentially across multiple cameras. To achieve the required performance and scalability, we utilize Qdrant, a high-performance vector database, as the underlying storage engine. Qdrant was selected for its optimized vector similarity search capabilities, essential for real-time embedding matching, its native support for high-dimensional vectors, and its efficient indexing algorithms that enable fast nearest neighbor queries. Additionally, Qdrant provides built-in metadata filtering that significantly reduces search space by filtering candidates based on detected attributes such as gender before performing similarity comparisons, dramatically improving query performance. The system also supports time-based data management through payload fields, allowing for efficient stale data handling and complex query operations on stored embeddings.
 
 \subsubsection{Qdrant configuration}
 
+The Qdrant vector database is configured to optimize performance for real-time identity matching while ensuring scalability and data persistence. The configuration encompasses several critical parameters tailored to the specific requirements of the ReID system.
+
+\textbf{Vector Configuration}: Each identity embedding is stored as a 512-dimensional dense vector, corresponding to the feature output of the OSNet architecture. The vector space utilizes cosine similarity as the distance metric, which has proven effective for high-dimensional embedding comparisons in person re-identification tasks. The collection is configured with HNSW (Hierarchical Navigable Small World) indexing to enable efficient approximate nearest neighbor searches with sub-linear query complexity.
+
+\textbf{Payload Structure}: Each vector entry contains structured metadata stored in the payload, including:
+\begin{itemize}
+    \item \texttt{identity\_id}: Unique identifier for the tracked individual
+    \item \texttt{first\_observed\_embedding}: 512-dimensional vector captured at initial detection
+    \item \texttt{most\_recent\_embedding}: 512-dimensional vector reflecting current appearance state
+    \item \texttt{high\_quality\_embeddings}: Array of up to 5 top-ranked embeddings with confidence scores above 0.7
+    \item \texttt{confidence\_scores}: Array of confidence values corresponding to each stored embedding
+    \item \texttt{last\_update\_timestamp}: Unix timestamp of the most recent metadata update
+    \item \texttt{gender}: Detected gender classification for metadata filtering
+    \item \texttt{embedding\_count}: Total number of embeddings stored for this identity
+    \item \texttt{camera\_id}: Source camera identifier for multi-camera scenarios
+\end{itemize}
+
+\textbf{Index Parameters}: The HNSW index is configured with \texttt{m=16} connections per node and \texttt{ef\_construct=200} during index construction to balance search accuracy and memory consumption. For query operations, \texttt{ef=64} provides optimal trade-off between retrieval precision and response latency for real-time applications.
+
+\textbf{Memory and Storage}: Qdrant operates in hybrid mode, maintaining frequently accessed vectors in memory while persisting the complete dataset to disk. The system allocates 4GB of RAM for vector caching, with automatic eviction policies based on access patterns. Data persistence is ensured through periodic snapshots and write-ahead logging (WAL) mechanisms.
+
+\textbf{Filtering Optimization}: Payload indexes are created on frequently filtered fields, particularly \texttt{gender} and \texttt{timestamp}, enabling efficient pre-filtering operations that significantly reduce the search space before vector similarity computation.
+
 \subsubsection{Retrieval approach}
 
-\subsection{ID Verifier Service}
+The retrieval process in our identity management system employs a multi-stage approach designed to balance accuracy and computational efficiency. When a new detection requires identity matching, the system performs the following retrieval strategy:
 
-\subsection{Consumers}
+\textbf{Query Construction}: For each incoming detection, a query embedding is constructed using the same OSNet architecture that generates the 512-dimensional feature vector. This query embedding serves as the search key against the stored identity profiles in Qdrant.
+
+\textbf{Metadata Pre-filtering}: Before executing the vector similarity search, the system applies metadata filters to significantly reduce the search space. Gender classification results are used as the primary filter, ensuring that only embeddings from individuals of the same detected gender are considered during similarity computation. This pre-filtering step can reduce the search space by approximately 50\% in typical scenarios, leading to faster query execution and improved system throughput. As discussed in Section \ref{sec:id_verifier_service}, the gender classification model is configured with a confidence threshold of 0.9 to ensure that only high-confidence gender predictions are used for search space partitioning.
+
+\textbf{Multi-embedding Similarity Computation}: Conventional Re-ID systems typically retain only the latest embedding for each identity, operating under the assumption that the most recent appearance provides the optimal representation for future matching operations. However, this strategy presents significant limitations in practical deployment scenarios, particularly within densely populated environments. A singular embedding proves inadequate for capturing the comprehensive range of an individual's visual characteristics due to postural variations, angular perspective changes, partial obstructions from surrounding objects or individuals, and dynamic illumination conditions. Moreover, when the latest embedding derives from a suboptimal detection instance (such as low-resolution imagery or substantial occlusion), it can compromise matching precision while displacing a superior prior representation.
+
+To address these limitations, the system implements a semantic-enhanced embedding architecture that preserves diversified, high-fidelity individual embeddings across temporal sequences. This methodology facilitates robust identity representation, especially within congested scenes or extended tracking applications. Each identity record within the embedding repository maintains a comprehensive embedding structure comprising:
+
+\begin{itemize}
+    \item \textbf{Initial Detection Embedding}: Acquired during the first observation, this vector functions as a foundational reference point to maintain the original visual characteristics of the individual.
+    \item \textbf{Current State Embedding}: Continuously refreshed to capture present appearance attributes, accommodating progressive changes throughout the tracking period.
+    \item \textbf{Elite Quality Embeddings ($k=5$)}: A prioritized collection of embeddings curated based on detection confidence metrics. Only embeddings exceeding a confidence threshold of 0.7 qualify for inclusion. These embeddings maintain hierarchical ordering by quality and undergo dynamic updates. Upon generating a new high-confidence embedding, the system evaluates it against the existing collection, replacing the lowest-quality entry if the new embedding demonstrates superior performance.
+\end{itemize}
+
+\textbf{Top-K Retrieval with Scoring (K=1)}: The system retrieves the single highest-scoring candidate identity based on cosine similarity to the query embedding. The returned candidate includes its similarity score and associated metadata, comprising the timestamp of the most recent update and quality metrics of the stored embeddings. By limiting retrieval to the top-ranked match, this configuration optimizes computational performance while ensuring rapid response times in real-time identity matching scenarios.
+
+This retrieval approach ensures that the system can efficiently handle high-throughput scenarios while maintaining accuracy in identity matching, particularly in challenging conditions such as crowded environments or varying lighting conditions.

@@ -1,0 +1,38 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Environmental Setup}
+\label{sec:environmental_setup}
+
+Our experiments were conducted on a computer featuring an Intel i5-12600K CPU paired with an NVIDIA GeForce RTX 3060 GPU (12 GB of VRAM) to perform inference for the end-to-end ReID system. Each camera node in the system was equipped with a lightweight, cost-effective device configured with a single-core CPU operating at 3.5 GHz and 512MB of RAM.
+
+\begin{table}[h]
+\centering
+\caption{Hardware setup on the server and the edge device}
+\label{tab:hardware_setup}
+\begin{tabular}{|p{3.5cm}|p{5cm}|p{5cm}|}
+\hline
+\textbf{Component} & \textbf{Edge Device} & \textbf{Server} \\
+\hline
+\textbf{CPU} & 1-core CPU 3.5 GHz & Intel i5 12600K \\
+\hline
+\textbf{GPU} & None & RTX 3060 12GB \\
+\hline
+\textbf{RAM} & 512MB & 32GB \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Dataset}
+\label{sec:dataset}
+\input{Chapter/4_1_Dataset}
+
+\section{Edge devices}
+\label{sec:edge_devices_experiments}
+\input{Chapter/4_2_Edge_devices}
+
+\section{Gender classification}
+\label{sec:classification_experiments}
+
+
+\end{document}
