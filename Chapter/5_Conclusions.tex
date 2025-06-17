@@ -1,13 +1,13 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-This thesis successfully addresses the critical gap between advanced person Re-ID technology and its accessibility for Small and Medium Enterprises (SMEs) through the development of a novel hybrid edge-server architecture. The research demonstrates that sophisticated person Re-ID capabilities can be deployed cost-effectively on resource-constrained devices, breaking the traditional barriers that have prevented smaller organizations from leveraging this technology.
+This thesis closes the critical gap between advanced person Re-ID technology and its practical, real-world application. Through the development of a novel hybrid edge-server architecture, the research demonstrates that sophisticated Re-ID capabilities can be deployed cost-effectively on resource-constrained devices. This breakthrough removes the traditional cost and infrastructure barriers that have historically limited the widespread adoption of this technology.
 
 \section{Achievements}
 
 The primary contributions of this research encompass both theoretical innovations and practical implementations that collectively advance the field of accessible person Re-ID systems.
 
-\subsection{System architecture and design}
+\textbf{System architecture and design}
 
 The thesis successfully developed and implemented a comprehensive hybrid edge-server person Re-ID system that optimally distributes computational workload between lightweight CPU-based edge devices and a centralized GPU-enabled server. This architecture addresses the fundamental limitations of existing approaches by:
 
@@ -18,7 +18,7 @@ The thesis successfully developed and implemented a comprehensive hybrid edge-se
     \item Achieving 99.5\% system uptime through robust fault-tolerance mechanisms
 \end{itemize}
 
-\subsection{CPU-based edge device optimization}
+\textbf{CPU-based edge device optimization}
 
 The research achieved significant breakthroughs in optimizing person detection for resource-constrained environments. The edge device implementation demonstrates:
 
@@ -27,17 +27,16 @@ The research achieved significant breakthroughs in optimizing person detection f
     \item Proof-of-concept that GPU acceleration is not requisite for effective person Re-ID deployment
 \end{itemize}
 
-\subsection{Metadata-enhanced retrieval innovation}
+\textbf{Metadata-enhanced retrieval innovation}
 
 A key innovation of this thesis is the integration of lightweight gender classification for metadata enhancement, resulting in:
 
 \begin{itemize}
     \item Development of a custom-trained gender classification model achieving 95\% accuracy using EfficientNet-B0 architecture
-    \item 20\% improvement in retrieval speed through intelligent search space partitioning during identity matching operations
     \item Reduced computational overhead on the centralized server during peak operations
 \end{itemize}
 
-\subsection{Scalable Model Serving Framework}
+\textbf{Scalable Model Serving Framework}
 
 The implementation of Ray Serve for model inference services achieved remarkable performance metrics:
 
@@ -52,92 +51,21 @@ The implementation of Ray Serve for model inference services achieved remarkable
 
 While this research achieves significant advances in accessible person Re-ID technology, several limitations must be acknowledged to provide a balanced perspective on the current state of the system.
 
-\subsection{Hardware constraints and performance trade-offs}
-
-The focus on resource-constrained deployment introduces inherent performance limitations:
+\textbf{Hardware constraints and performance trade-offs}
 
 \begin{itemize}
     \item The 12 FPS processing rate on edge devices may not be sufficient for high-speed surveillance scenarios or applications requiring real-time response
     \item Ray Serve achieves good performance with 121 RPS throughput and 176.4\% improvement in concurrent processing, but performance degrades severely (-80.9\%) under burst load patterns, indicating limitations in handling sudden traffic spikes
 \end{itemize}
 
-\subsection{Network dependency and scalability concerns}
-
-Despite the hybrid architecture's advantages, network-related limitations persist:
-
-\begin{itemize}
-    \item Large-scale deployments with numerous edge devices require high network bandwidth and low latency for efficient message production and consumption, which may be challenging to achieve in typical SME network infrastructures
-    \item The Kafka message broker cluster may become a bottleneck when handling high volumes of concurrent edge device connections, necessitating additional infrastructure investment and cluster optimization
-    \item Network latency between edge devices and the centralized server can significantly impact real-time performance, particularly in geographically distributed deployments where physical distance introduces unavoidable communication delays
-\end{itemize}
-
-\subsection{Model Accuracy and Generalization}
-
-The optimization for resource-constrained environments introduces accuracy trade-offs:
-
-\begin{itemize}
-    \item The use of lightweight models (YOLOv11n) may result in reduced detection accuracy compared to larger, more sophisticated models, particularly in challenging scenarios with occlusion or poor lighting conditions
-    \item The gender classification model, while achieving 95\% accuracy, still exhibits unstable performance across different environments and varying lighting conditions, potentially affecting the reliability of metadata-enhanced retrieval optimization
-\end{itemize}
-
-\subsection{System canomplexity and maintenance}
-
-The distributed nature of the system introduces operational challenges:
-
-\begin{itemize}
-    \item Managing multiple Docker containers across edge devices and centralized servers requires specialized DevOps expertise
-    \item Debugging and troubleshooting issues across the distributed system can be complex and time-consuming
-\end{itemize}
-
-
 \section{Suggestions for future work}
 
-The foundation established by this research opens numerous avenues for future investigation and improvement, each addressing current limitations while expanding the system's capabilities and applicability.
-
-\subsection{Advanced edge computing optimization}
-
-Future research should focus on optimizing edge device performance through advanced model compression techniques, custom CPU-optimized architectures, and adaptive processing mechanisms that adjust complexity based on available resources.
-
-\subsection{Enhanced Machine Learning Capabilities}
-
-Key areas for AI improvement include:
-
 \begin{itemize}
-    \item \textbf{Federated Learning}: Enable edge devices to collaboratively improve models while maintaining data privacy
-    \item \textbf{Multi-Attribute Classification}: Extend beyond gender to include age, clothing color, and other retrieval-enhancing attributes
-    \item \textbf{Cross-Domain Adaptation}: Improve model generalization across different deployment environments
+    \item \textbf{Handling burst requests performance degradation problem}: The current Ray Serve implementation experiences severe performance degradation (-80.9\%) under burst load patterns. Future work should investigate adaptive load balancing strategies, dynamic resource allocation mechanisms, and queue management techniques to maintain consistent performance during traffic spikes. Implementing circuit breaker patterns and auto-scaling policies could help mitigate this limitation.
+    
+    \item \textbf{Trying more detection models on limited resource CPU-based edge device to get better FPS}: While YOLOv11n achieves 12 FPS on minimal hardware, exploring alternative lightweight detection models such as MobileNet-SSD, EfficientDet, or newer YOLO variants could potentially improve frame rates. Additionally, investigating model quantization techniques, pruning strategies, and hardware-specific optimizations (e.g., Intel OpenVINO) may further enhance performance on CPU-constrained edge devices.
+    
+    \item \textbf{Trying another tracking algorithm like BOTSort, utilizing features to enhance the tracking performance}: The current system could benefit from implementing advanced multi-object tracking algorithms such as BOTSort\cite{aharon2022botsortrobustassociationsmultipedestrian}. These algorithms leverage appearance features and motion prediction to improve tracking accuracy and reduce identity switches, which would enhance the overall Re-ID system performance, especially in crowded scenarios with frequent occlusions.
 \end{itemize}
-
-\subsection{System Architecture Improvements}
-
-Future work should address scalability through:
-
-\begin{itemize}
-    \item \textbf{Hierarchical Edge Computing}: Multi-tier architectures with intermediate processing nodes to reduce network load
-    \item \textbf{Intelligent Load Balancing}: Dynamic workload distribution based on real-time system performance
-    \item \textbf{Edge-to-Edge Communication}: Direct device communication to reduce centralized infrastructure dependency
-\end{itemize}
-
-\subsection{Real-World Validation}
-
-Comprehensive validation should include:
-
-\begin{itemize}
-    \item \textbf{Large-Scale Pilot Studies}: Extensive deployments across different SME industries
-    \item \textbf{Long-Term Stability Analysis}: Extended operational studies to assess reliability and maintenance needs
-    \item \textbf{Economic Impact Assessment}: Cost-benefit analyses comparing with traditional solutions
-\end{itemize}
-
-\subsection{Privacy and Security}
-
-Future research should prioritize:
-
-\begin{itemize}
-    \item \textbf{Privacy-Preserving Techniques}: Implementation of differential privacy and secure computation methods
-    \item \textbf{Regulatory Compliance}: Ensure compliance with privacy regulations (GDPR, CCPA)
-    \item \textbf{Consent Management}: Frameworks allowing individuals to control their biometric data usage
-\end{itemize}
-
-In conclusion, this thesis demonstrates that advanced person Re-ID technology can be made accessible to resource-constrained organizations through thoughtful architectural design. The hybrid edge-server approach addresses current limitations while establishing a foundation for future innovations that will continue to democratize sophisticated surveillance technologies.
 
 \end{document}
