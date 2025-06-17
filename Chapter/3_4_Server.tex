@@ -1,6 +1,7 @@
 The centralized server architecture represents a most principal component in the hybrid edge-server person Re-ID system, serving as the computational backbone for resource-intensive operations that exceed the capabilities of edge devices. While the CPU-based edge devices handle distributed object detection and initial preprocessing, the centralized server leverages its GPU computing resources to perform sophisticated model inference tasks, including feature extraction and gender classification. Additionally, the server manages vector database operations for identity storage and retrieval, coordinates multi-consumer message processing from Kafka streams, and maintains the overall system state for cross-camera identity matching, as illustrated in Figure \ref{fig:centralized_server_overview}. This centralized microservice-based approach enables the system to achieve optimal resource utilization by offloading computationally demanding tasks from resource-constrained edge devices to a dedicated server environment equipped with specialized hardware acceleration. The server's architecture is designed to handle concurrent processing of multiple video streams while maintaining real-time performance requirements essential for practical surveillance applications.
 
 \newpage
+
 \begin{figure}[!htbp]
     \centering
     \includegraphics[width=1.1\textwidth]{Figure/centralized_overview.png}
@@ -19,8 +20,8 @@ After receiving the batch of messages, the system processes each message (frame)
 \begin{enumerate}
    \item For each frame containing cropped person detections and bounding box coordinates, the system extracts person regions and computes two essential properties (referred to as person metadata):
    \begin{itemize}
-       \item \textbf{Embedding vector}: A numerical feature representation of the person region used for similarity searches in the vector database to determine whether the person already exists in the system.
-       \item \textbf{Gender classification}: The predicted gender of the person (male or female), enabling gender-based search space partitioning that reduces computational complexity by approximately 50\% by querying only relevant gender subsets during similarity matching operations.
+       \item \textit{Embedding vector}: A numerical feature representation of the person region used for similarity searches in the vector database to determine whether the person already exists in the system.
+       \item \textit{Gender classification}: The predicted gender of the person (male or female), enabling gender-based search space partitioning that reduces computational complexity by approximately 50\% by querying only relevant gender subsets during similarity matching operations.
    \end{itemize}
    \item The processing goal is to obtain complete results for all frames in the batch before proceeding to tracking and identity matching operations.
 \end{enumerate}
@@ -182,51 +183,48 @@ The ID Verifier Service exposes a RESTful API through a single endpoint (\texttt
 
 \subsection{Embedding Storage}
 
-Embedding storage is also a critical component of the identity management system, and it is responsible for persistently storing and retrieving body embeddings of identified individuals. This storage enables the system to re-identify people across frames and potentially across multiple cameras. To achieve the required performance and scalability, we utilize Qdrant, a high-performance vector database, as the underlying storage engine. Qdrant was selected for its optimized vector similarity search capabilities, essential for real-time embedding matching, its native support for high-dimensional vectors, and its efficient indexing algorithms that enable fast nearest neighbor queries. Additionally, Qdrant provides built-in metadata filtering that significantly reduces search space by filtering candidates based on detected attributes such as gender before performing similarity comparisons, dramatically improving query performance. The system also supports time-based data management through payload fields, allowing for efficient stale data handling and complex query operations on stored embeddings.
+Embedding storage represents a critical component of the identity management system, responsible for persistently storing and retrieving body embeddings of identified individuals. This storage mechanism enables the system to re-identify people across frames and potentially across multiple cameras in distributed surveillance environments. To achieve the required performance and scalability while maintaining cost-effectiveness for deployment on resource-constrained devices, we utilize Redis, a high-performance in-memory data structure store, as the underlying storage engine.
 
-\subsubsection{Qdrant configuration}
+Redis was selected for its exceptional performance characteristics in real-time applications, including sub-millisecond query response times, native support for complex data structures, and efficient memory-based operations that enable rapid embedding comparisons. The system leverages Redis's built-in expiration mechanisms for automatic stale data management and its atomic operations for thread-safe concurrent access in multi-threaded environments. Additionally, Redis provides flexible data persistence options, allowing the system to balance between pure in-memory performance and data durability based on deployment requirements.
 
-The Qdrant vector database is configured to optimize performance for real-time identity matching while ensuring scalability and data persistence. The configuration encompasses several critical parameters tailored to the specific requirements of the ReID system.
+\textbf{Redis Configuration and Data Structure}
 
-\textbf{Vector Configuration}: Each identity embedding is stored as a 512-dimensional dense vector, corresponding to the feature output of the OSNet architecture. The vector space utilizes cosine similarity as the distance metric, which has proven effective for high-dimensional embedding comparisons in person re-identification tasks. The collection is configured with HNSW (Hierarchical Navigable Small World) indexing to enable efficient approximate nearest neighbor searches with sub-linear query complexity.
+The Redis-based identity management system is configured to optimize performance for real-time identity matching while ensuring efficient memory utilization and data persistence. The configuration encompasses several critical parameters tailored to the specific requirements of the Re-ID system.
 
-\textbf{Payload Structure}: Each vector entry contains structured metadata stored in the payload, including:
-\begin{itemize}
-    \item \texttt{identity\_id}: Unique identifier for the tracked individual
-    \item \texttt{first\_observed\_embedding}: 512-dimensional vector captured at initial detection
-    \item \texttt{most\_recent\_embedding}: 512-dimensional vector reflecting current appearance state
-    \item \texttt{high\_quality\_embeddings}: Array of up to 5 top-ranked embeddings with confidence scores above 0.7
-    \item \texttt{confidence\_scores}: Array of confidence values corresponding to each stored embedding
-    \item \texttt{last\_update\_timestamp}: Unix timestamp of the most recent metadata update
-    \item \texttt{gender}: Detected gender classification for metadata filtering
-    \item \texttt{embedding\_count}: Total number of embeddings stored for this identity
-    \item \texttt{camera\_id}: Source camera identifier for multi-camera scenarios
-\end{itemize}
-
-\textbf{Index Parameters}: The HNSW index is configured with \texttt{m=16} connections per node and \texttt{ef\_construct=200} during index construction to balance search accuracy and memory consumption. For query operations, \texttt{ef=64} provides optimal trade-off between retrieval precision and response latency for real-time applications.
-
-\textbf{Memory and Storage}: Qdrant operates in hybrid mode, maintaining frequently accessed vectors in memory while persisting the complete dataset to disk. The system allocates 4GB of RAM for vector caching, with automatic eviction policies based on access patterns. Data persistence is ensured through periodic snapshots and write-ahead logging (WAL) mechanisms.
-
-\textbf{Filtering Optimization}: Payload indexes are created on frequently filtered fields, particularly \texttt{gender} and \texttt{timestamp}, enabling efficient pre-filtering operations that significantly reduce the search space before vector similarity computation.
-
-\subsubsection{Retrieval approach}
-
-The retrieval process in our identity management system employs a multi-stage approach designed to balance accuracy and computational efficiency. When a new detection requires identity matching, the system performs the following retrieval strategy:
-
-\textbf{Query Construction}: For each incoming detection, a query embedding is constructed using the same OSNet architecture that generates the 512-dimensional feature vector. This query embedding serves as the search key against the stored identity profiles in Qdrant.
-
-\textbf{Metadata Pre-filtering}: Before executing the vector similarity search, the system applies metadata filters to significantly reduce the search space. Gender classification results are used as the primary filter, ensuring that only embeddings from individuals of the same detected gender are considered during similarity computation. This pre-filtering step can reduce the search space by approximately 50\% in typical scenarios, leading to faster query execution and improved system throughput. As discussed in Section \ref{sec:id_verifier_service}, the gender classification model is configured with a confidence threshold of 0.9 to ensure that only high-confidence gender predictions are used for search space partitioning.
-
-\textbf{Multi-embedding Similarity Computation}: Conventional Re-ID systems typically retain only the latest embedding for each identity, operating under the assumption that the most recent appearance provides the optimal representation for future matching operations. However, this strategy presents significant limitations in practical deployment scenarios, particularly within densely populated environments. A singular embedding proves inadequate for capturing the comprehensive range of an individual's visual characteristics due to postural variations, angular perspective changes, partial obstructions from surrounding objects or individuals, and dynamic illumination conditions. Moreover, when the latest embedding derives from a suboptimal detection instance (such as low-resolution imagery or substantial occlusion), it can compromise matching precision while displacing a superior prior representation.
-
-To address these limitations, the system implements a semantic-enhanced embedding architecture that preserves diversified, high-fidelity individual embeddings across temporal sequences. This methodology facilitates robust identity representation, especially within congested scenes or extended tracking applications. Each identity record within the embedding repository maintains a comprehensive embedding structure comprising:
+\textbf{Data Structure Design}: Each identity is stored as a Redis hash with a structured key format \texttt{personid:\{identity\_id\}}, containing comprehensive metadata and embedding information. The data structure includes:
 
 \begin{itemize}
-    \item \textbf{Initial Detection Embedding}: Acquired during the first observation, this vector functions as a foundational reference point to maintain the original visual characteristics of the individual.
-    \item \textbf{Current State Embedding}: Continuously refreshed to capture present appearance attributes, accommodating progressive changes throughout the tracking period.
-    \item \textbf{Elite Quality Embeddings ($k=5$)}: A prioritized collection of embeddings curated based on detection confidence metrics. Only embeddings exceeding a confidence threshold of 0.7 qualify for inclusion. These embeddings maintain hierarchical ordering by quality and undergo dynamic updates. Upon generating a new high-confidence embedding, the system evaluates it against the existing collection, replacing the lowest-quality entry if the new embedding demonstrates superior performance.
+   \item \texttt{identity\_id}: Unique identifier for the tracked individual
+   \item \texttt{last\_embedding}: 512-dimensional normalized vector from OSNet architecture 
+   \item \texttt{fullbody\_bbox}: Bounding box coordinates of the most recent detection
+   \item \texttt{body\_conf}: Confidence score of the stored detection (0.0-1.0)
+   \item \texttt{gender}: Detected gender classification (``male'' or ``female'')
+   \item \texttt{gender\_confidence}: Confidence score of gender classification (0.0-1.0)
+   \item \texttt{last\_seen\_frame}: Frame number of most recent observation
+   \item \texttt{update\_count}: Total number of updates for this identity
+   \item \texttt{ttl}: Time-to-live value for automatic expiration
 \end{itemize}
 
-\textbf{Top-K Retrieval with Scoring (K=1)}: The system retrieves the single highest-scoring candidate identity based on cosine similarity to the query embedding. The returned candidate includes its similarity score and associated metadata, comprising the timestamp of the most recent update and quality metrics of the stored embeddings. By limiting retrieval to the top-ranked match, this configuration optimizes computational performance while ensuring rapid response times in real-time identity matching scenarios.
+\textbf{Memory Management}: Redis operates with configurable memory allocation and automatic expiration policies. Each identity entry is assigned a time-to-live (TTL) of 1000 frames, enabling automatic cleanup of stale identities without manual intervention. The system utilizes Redis's built-in LRU eviction policies to manage memory pressure during peak operational periods.
 
-This retrieval approach ensures that the system can efficiently handle high-throughput scenarios while maintaining accuracy in identity matching, particularly in challenging conditions such as crowded environments or varying lighting conditions.
+\textbf{Persistence Configuration}: The system employs Redis's hybrid persistence approach, combining RDB snapshots for periodic data backup with AOF (Append-Only File) logging for transaction durability, ensuring data integrity across system restarts while maintaining optimal performance.
+
+\textbf{Enhanced Retrieval Strategy with Gender-Based Filtering}
+
+The retrieval process implements an intelligent multi-stage approach designed to balance accuracy and computational efficiency through metadata-based pre-filtering. The system employs gender classification as a primary filtering mechanism to reduce search space and improve query performance.
+
+\textbf{Query Construction and Pre-filtering}: For each incoming detection requiring identity matching, the system constructs a query embedding using the OSNet architecture, generating a 512-dimensional normalized feature vector. Before executing similarity comparisons, the system applies gender-based filtering when both the query person and stored identities have high-confidence gender classifications (threshold $>$ 0.9). This pre-filtering mechanism can reduce the search space by approximately 50\% in typical scenarios, significantly improving query execution speed and system throughput.
+
+\textbf{Adaptive Similarity Computation}: The system utilizes PyTorch's\\ \texttt{F.cosine\_similarity} function for consistent similarity calculations, ensuring alignment with the training methodology. The similarity computation process iterates through gender-filtered candidates, calculating cosine similarity scores between the query embedding and stored embeddings. Only matches exceeding the similarity threshold (default: 0.8) are considered valid candidates.
+
+\textbf{Identity Update Logic}: The system implements a sophisticated identity management strategy that distinguishes between verified and unverified tracks:
+
+\begin{enumerate}
+   \item \textbf{Verified Identity Updates}: For existing tracked identities, the system updates stored embeddings only when both detection confidence exceeds 0.75 and the new detection demonstrates higher confidence than the currently stored embedding. This selective updating ensures that only high-quality representations are preserved.
+   \item \textbf{Unverified Identity Processing}: For new or unverified tracks, the system performs comprehensive database searches using the gender-filtered approach. When a similarity match above the threshold is found, the system updates the existing identity with the new embedding and remaps the tracker association.
+   \item \textbf{Quality-Based Embedding Replacement}: The system maintains the highest quality embedding for each identity by comparing detection confidence scores. New embeddings replace existing ones only when they demonstrate superior quality metrics, preserving optimal representation fidelity.
+\end{enumerate}
+
+\textbf{Gender Classification Integration}: The system integrates gender classification results with a confidence threshold of 0.9 for search space partitioning. High-confidence gender predictions enable efficient filtering, while low-confidence classifications default to comprehensive searches to prevent false exclusions. This adaptive approach ensures robust performance across diverse detection scenarios while maximizing computational efficiency.
+
+\textbf{Performance Optimization}: The Redis-based approach provides several performance advantages, including constant-time key lookups, efficient memory-based similarity computations, and automatic memory management through TTL mechanisms. The system's architecture enables horizontal scaling through Redis clustering for high-throughput deployments while maintaining millisecond-level response times for real-time applications.

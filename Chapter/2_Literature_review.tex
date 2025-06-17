@@ -181,15 +181,15 @@ Although widely used in Natural Language Processing (NLP) tasks like Retrieval-A
 Several popular vector databases have emerged, each with distinct characteristics:
 
 \begin{itemize}
-  \item \textbf{Faiss}, developed by Meta, is a highly efficient C++ library offering both exact and approximate nearest-neighbor search using indexing strategies like Hierarchical Navigable Small World (HNSW), product quantization, and GPU acceleration~\cite{faiss}.
+  \item \textit{Faiss}, developed by Meta, is a highly efficient C++ library offering both exact and approximate nearest-neighbor search using indexing strategies like Hierarchical Navigable Small World (HNSW), product quantization, and GPU acceleration~\cite{faiss}.
   
-  \item \textbf{Milvus} is a scalable, distributed vector database built upon Faiss and hnswlib, supporting vast volumes of vectors and hybrid indexing methods optimized for distributed deployments~\cite{milvus}.
+  \item \textit{Milvus} is a scalable, distributed vector database built upon Faiss and hnswlib, supporting vast volumes of vectors and hybrid indexing methods optimized for distributed deployments~\cite{milvus}.
   
-  \item \textbf{ChromaDB} is lightweight and optimized for NLP embeddings, providing simplicity and ease of use, though it may not offer the highest performance for large-scale or complex metadata queries~\cite{chromadb}.
+  \item \textit{ChromaDB} is lightweight and optimized for NLP embeddings, providing simplicity and ease of use, though it may not offer the highest performance for large-scale or complex metadata queries~\cite{chromadb}.
   
-  \item \textbf{Qdrant}, a Rust-based vector database, excels in hybrid queries due to its built-in support for efficient metadata filtering combined directly with vector search. Its HNSW indexing structure integrates metadata filtering during the search, significantly reducing query latency compared to post-filtering approaches~\cite{qdrant}.
+  \item \textit{Qdrant}, a Rust-based vector database, excels in hybrid queries due to its built-in support for efficient metadata filtering combined directly with vector search. Its HNSW indexing structure integrates metadata filtering during the search, significantly reducing query latency compared to post-filtering approaches~\cite{qdrant}.
   
-  \item \textbf{Redis}, traditionally a key-value store, now includes vector search capabilities through the RediSearch module. Redis offers exceptional speed and convenience with its in-memory architecture, providing low-latency vector similarity searches while maintaining familiar Redis operations for metadata management. Its mature ecosystem and widespread adoption make it particularly attractive for hybrid edge-server deployments~\cite{redis_vector}.
+  \item \textit{Redis}, traditionally a key-value store, now includes vector search capabilities through the RediSearch module. Redis offers exceptional speed and convenience with its in-memory architecture, providing low-latency vector similarity searches while maintaining familiar Redis operations for metadata management. Its mature ecosystem and widespread adoption make it particularly attractive for hybrid edge-server deployments~\cite{redis_vector}.
   
   
 \end{itemize}
