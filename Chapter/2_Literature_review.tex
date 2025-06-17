@@ -62,7 +62,7 @@ Object detection technology finds applications across numerous domains including
 
 Modern frameworks such as Detectron2 \cite{Merz_2023} and EfficientDet \cite{tan2020efficientdetscalableefficientobject} have pushed object detection forward considerably. Detectron2 offers flexible deployment of high-performing models but demands extensive setup and typically involves \\computationally heavy architectures, making it unsuitable for real-time or resource-limited environments. EfficientDet provides a more practical option for devices with constrained resources, though it may struggle to meet strict real-time performance criteria.
 
-You Only Look Once (YOLO) addresses the limitations of multi-stage detection approaches by reformulating object detection as a single regression problem. YOLO processes the entire image in one forward pass, directly predicting bounding boxes and class probabilities from full images. This unified architecture enables real-time performance while maintaining reasonable accuracy for many applications.
+YOLO model addresses the limitations of multi-stage detection approaches by reformulating object detection as a single regression problem. YOLO processes the entire image in one forward pass, directly predicting bounding boxes and class probabilities from full images. This unified architecture enables real-time performance while maintaining reasonable accuracy for many applications.
 
 The YOLO family has evolved through multiple iterations, with each version improving upon speed-accuracy trade-offs. YOLOv11 \cite{khanam2024yolov11overviewkeyarchitectural}, in particular, offers several model variants ranging from nano (yolo11n) to extra-large (yolo11x)\\configurations. The nano variant is specifically designed for resource-constrained environments, featuring significantly reduced parameters and computational requirements while preserving essential detection capabilities.
 
@@ -77,7 +77,7 @@ A significant advancement in YOLOv11 is the integration of thhe C2PSA \\(Convolu
 block with Parallel Spatial Attention) component, which enhances spatial attention capabilities beyond previous YOLO iterations. The C2PSA block enables the model to focus more effectively on critical regions within images by inaplementing parallel spatial
 attention mechanisms. This enhancement is particularly beneficial for detecting objects of varying sizes and positions, addressing common challengees in complex visual environments with partially occluded or small objects. The retention of the Spatial Pyramid Pooling - Fast (SPPF) blockfrom previous versions, combined with the new C2PSA component, creates a compreehensive feature processing pipeline that balances computational efficiency with enhancced spatial awareness.
 
-For edge-based human monitoring applications, YOLOv11n provides an optimal balance between detection performance and computational efficiency. Its lightweight architecture enables deployment on edge devices for real-time person detection, serving as the foundation for subsequent tracking and Re-ID processes in distributed camera networks.
+For edge-based human monitoring applications, YOLOv11n provides an optimal balance between detection performance and computational efficiency. Its lightweight architecture enables deployment on edge devices for real-time person detection, serving as the foundation for subsequent tracking and Re-ID processes in distributed camera networks. For these benefits, YOLOv11n is chosen as the object detection model for this thesis.
 
 \subsection{Object tracking}
 \label{sec:objtrack}
@@ -86,11 +86,13 @@ Person Re-ID systems face significant challenges when relying solely on frame-by
 
 To address these limitations, tracking mechanisms play a crucial role in maintaining identity consistency over temporal sequences. Unlike existing methods that perform Re-ID independently for each frame, tracking-based approaches maintain continuous identity associations across time. This temporal continuity significantly outperforms computationally expensive alternatives such as query-driven region proposals \cite{munjal2019queryguidedendtoendpersonsearch} and graph-based retrieval methods \cite{zhu2025graphbasedapproachesfunctionalitiesretrievalaugmented}, which become prohibitively costly in large-scale deployment scenarios. By leveraging tracking, our system can efficiently associate multiple detections of the same person, substantially reducing redundant identity searches while improving real-time processing capabilities.
 
-The development of multi-object tracking (MOT) algorithms has evolved through several generations, each addressing specific limitations of previous approaches. 
+The development of MOT algorithms has evolved through several generations, each addressing specific limitations of previous approaches. 
 
 Multi-object tracking has evolved through several approaches, each with distinct trade-offs. SORT \cite{sort} provides efficient tracking by integrating object detection with motion prediction, but struggles with complex movement patterns and fast-paced scenarios. To address these limitations, DeepSORT \cite{deepsort} incorporates appearance features via a pre-trained Siamese network, improving performance in dense environments where motion alone is inadequate. However, this enhancement introduces dependency on embedding quality and computational complexity, making it susceptible to visual disturbances. FairMOT \cite{fairmot} advances this paradigm by merging detection and tracking into a unified architecture that simultaneously produces detection outputs and Re-ID features for enhanced multi-object tracking. This unified approach, while effective, demands significant computational resources and requires careful optimization between detection and Re-ID objectives, ultimately compromising processing speed. Alternative solutions include MMTracking \cite{mmtracking}, which provides a versatile framework supporting multiple advanced algorithms but necessitates substantial parameter optimization.
 
-ByteTrack \cite{bytetrack} represents a breakthrough in tracking methodology, delivering exceptional performance without requiring dedicated appearance models, thereby maintaining high processing speeds particularly in crowded environments. This approach achieves an optimal trade-off between real-time processing and tracking reliability. Consequently, our framework employs ByteTrack for maintaining pedestrian identity consistency across video frames, significantly enhancing ID assignment precision. This capability proves essential in dense scenarios where overlapping persons create significant challenges for camera-based identification systems.
+ByteTrack \cite{bytetrack} represents a breakthrough in tracking methodology, delivering exceptional performance without requiring dedicated appearance models, thereby maintaining high processing speeds particularly in crowded environments. This approach achieves an optimal trade-off between real-time processing and tracking reliability. 
+
+Consequently, this thesis employs ByteTrack for maintaining pedestrian identity consistency across video frames, significantly enhancing ID assignment precision. This capability proves essential in dense scenarios where overlapping persons create significant challenges for camera-based identification systems.
 
 \subsection{Feature extraction}
 \label{sec:feature_extraction}
@@ -111,6 +113,8 @@ Among these specialized designs, OSNet (Omni-Scale Network) \cite{zhou2019omnisc
 
 Expanding on OSNet's approach, LightMBN (Lightweight Multi-Branch Network) \cite{Herzog_2021} further advances edge-friendly Re-ID through a multi-branch design tailored for constrained environments. LightMBN integrates efficient channel-wise and spatial attention mechanisms, adaptively emphasizing informative features without significantly increasing computational load. This enables robust identity matching with minimal resource usage.
 
+Given these advantages, this thesis adopts OSNet and LightMBN as the feature extraction models for the proposed system, ensuring lightweight but still enough efficient for person Re-ID processing.
+
 \subsection{Image classification}
 \label{sec:image_classification}
 
@@ -118,7 +122,10 @@ Traditionally, image classification and person Re-ID have been considered distin
 
 Commonly used image classification models include well-established convolutional neural networks (CNNs) such as ResNet~\cite{he2015deepresiduallearningimage}, known for its deep residual learning framework that significantly improves accuracy in classification tasks. MobileNet~\cite{mobilenet} offers lightweight architectures optimized for resource-constrained devices, leveraging depth-wise separable convolutions to reduce computational costs. More recently, Vision Transformers (ViT)~\cite{ViT} have introduced transformer-based architectures to image classification, leveraging self-attention mechanisms to capture global relationships, achieving impressive accuracy at the cost of higher computational demands.
 
-To effectively balance accuracy and computational efficiency in edge-based systems, EfficientNet~\cite{efficientnet} was introduced. EfficientNet leverages a compound scaling method to optimally adjust network depth, width, and resolution. Among its variants, EfficientNet-B0 stands out due to its particularly compact structure and excellent performance, making it ideal for deployment on lightweight edge devices. By employing EfficientNet-B0 for gender classification in our Re-ID pipeline, we effectively filter candidate matches by gender, significantly reducing computational overhead and improving the efficiency of subsequent identity matching stages.
+To effectively balance accuracy and computational efficiency in edge-based systems, EfficientNet~\cite{efficientnet} was introduced. EfficientNet leverages a compound scaling method to optimally adjust network depth, width, and resolution. Among its variants, EfficientNet-B0 stands out due to its particularly compact structure and excellent performance, making it ideal for deployment on lightweight edge devices. 
+
+By employing EfficientNet-B0 for gender classification in the proposed Re-ID pipeline, the system effectively filter candidate matches by gender, significantly reducing computational overhead and improving the efficiency of subsequent identity matching stages.
+
 
 \subsection{Message queue}
 \label{sec:message_queue}
@@ -142,7 +149,9 @@ Considering these aspects, \textbf{Apache Kafka} \cite{kafka_intro} emerges as t
 
 In Kafka's architecture, \textit{producers} generate data streams—such as encoded video frames in byte format, video metadata, and detected human bounding boxes—and send these streams to Kafka's storage system. In the context of person Re-ID, producers correspond to edge devices (e.g., surveillance cameras or edge processors). On the other hand, \textit{consumers} are processes initiated on central servers, which simultaneously subscribe to these data streams to retrieve and perform further processing, such as feature extraction, identity matching, and analytics. Kafka organizes these data streams into logical channels known as \textit{topics}, each representing a specific category or type of data. To enhance scalability, each topic is divided into multiple \textit{partitions}, enabling parallel processing and improved fault tolerance across distributed environments. 
 
-This structured approach ensures Kafka can effectively manage data flow and scale seamlessly, making it particularly suited to complex, distributed Re-ID deployments.
+This structured approach ensures Kafka can effectively manage data flow and scale seamlessly across distributed nodes. For person Re-ID pipelines specifically, Kafka's ability to handle high-throughput video streams, maintain message ordering within partitions, and provide durable storage makes it exceptionally well-suited for scenarios where edge devices continuously generate feature vectors and metadata that must be reliably transmitted to central servers for identity matching. Furthermore, Kafka's built-in replication and fault-tolerance mechanisms ensure data integrity even when individual edge nodes experience connectivity issues, while its horizontal scaling capabilities allow the system to accommodate growing numbers of surveillance cameras and processing nodes without performance degradation. 
+
+These characteristics make Kafka not just suitable, but optimal for complex, distributed Re-ID deployments where reliability, scalability, and real-time data processing are essential.
 
 \subsection{Model serving framework}
 \label{sec:model_serving_framework}
@@ -151,12 +160,16 @@ Deploying person Re-ID and lightweight classification models effectively in hybr
 
 To balance these trade-offs, Ray Serve~\cite{ray_serve_docs} has emerged as an attractive framework, offering notable flexibility and ease of integration. Specifically designed for scalable deployments, Ray Serve supports serving multiple models simultaneously, dynamically composing inference pipelines, and efficiently managing replicas to maximize GPU utilization. Additionally, it seamlessly integrates with FastAPI, allowing developers to directly embed their inference endpoints within Python-based microservice architectures. This combination of flexible model orchestration, autoscaling capabilities, and developer-friendly integration makes Ray Serve particularly suited for deploying lightweight person Re-ID models like OSNet and LightMBN, as well as efficient image classification models, within hybrid edge–server setups.
 
+Considering these advantages, this thesis adopts Ray Serve as the model serving framework for the proposed system, ensuring efficient deployment of lightweight models in hybrid edge-server architectures to maximize the utilization of hardware resources.
+
 \subsection{Containerization}
 \label{sec:containerization}
 
 Containerization is a foundational technology in modern DevOps and microservices architectures, enabling applications and their dependencies to be packaged into lightweight, isolated units. This approach simplifies development workflows and significantly improves service portability. By encapsulating services within containers, they can be deployed, scaled, and updated independently, which facilitates more efficient version control and lifecycle management in distributed systems.
 
 Among the various container technologies, Docker \cite{docker_intro} is a widely used tool for building and running containers. Docker Engine serves as the core runtime that manages container lifecycle, including creation, execution, and resource allocation. Developers define application environments in a `Dockerfile`, which contains step-by-step instructions for building container images, including base operating system, dependencies, configuration files, and application code. This declarative approach ensures consistent behavior across both staging and production environments, eliminating the common "it works on my machine" problem. The Docker Engine utilizes Linux kernel features such as namespaces for process isolation and cgroups for resource management, enabling multiple containers to run securely on a single host without interference. Additionally, Docker's layered filesystem architecture allows for efficient image storage and sharing, where common layers are reused across different containers, reducing storage overhead and improving deployment speed.
+
+Overall, with Docker, the system can be deployed on any machine with Docker installed, ensuring consistent behavior across different environments. Given these advantages, this thesis adopts Docker as the containerization technology using for both edge device and centralized server deployment.
 
 \subsection{Vector Database}
 \label{sec:vector_database}
