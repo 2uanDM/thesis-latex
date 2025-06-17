@@ -43,7 +43,7 @@ While this model simplifies on-site hardware, it introduces significant drawback
 \end{itemize}
 
 \subsubsection{Fully edge-based architecture}
-To mitigate the network dependencies of the centralized model, an edge-based architecture places computational power on devices located near the cameras. These ``edge'' devices process video locally and transmit only lightweight metadata, such as feature vectors, to a central location.
+To mitigate the network dependencies of the centralized model, an edge-based architecture places computational power on devices located near the cameras. These edge evices process video locally and transmit only lightweight metadata, such as feature vectors, to a central location.
 
 This design reduces network bandwidth requirements and enhances resilience to network disruptions. However, it introduces its own distinct disadvantages:
 \begin{itemize}
@@ -67,59 +67,52 @@ The persistent ``innovation deadlock'' that prevents smaller organizations from 
 
 This thesis presents a feasible solution: a novel hybrid architecture specifically engineered to make Re-ID technology affordable, scalable, and manageable for surveillance systems in resource-constrained environments. Our approach promises to bridge the gap between cutting-edge AI capabilities and practical deployment constraints, enabling organizations of all sizes to harness the power of intelligent staff monitoring and operational optimization.
 
-\section{Tentative solution} 
-\label{sec:tentative_solution}
-
-
-
-
 \section{Objectives and scope of thesis} 
 \label{sec:objectives}
 
-This thesis aims to address the challenges faced by SMEs in adopting person Re-ID technology by developing a cost-effective, scalable solution that combines the benefits of edge computing with centralized processing power.
+Section \ref{sec:background} presents various challenges that SMEs are facing due to their limited financial ability to implement solutions for internal surveillance. The first objective of this thesis is to design and implement a hybrid edge-server person Re-ID pipeline that can be deployed on resource-constrained devices, especially on CPU-based devices for edge deployment. This proves that GPU-based devices are not requisite for person Re-ID. This pipeline can detect, extract semantic vision features, and track person movements to report the results to the central server. The output of the pipeline can be used for various applications such as staff monitoring, service coverage analysis, and operational optimization.
 
-The primary objective is to design and implement an end-to-end person Re-ID pipeline that can operate efficiently on CPU-based edge devices without requiring expensive GPU acceleration. This approach significantly reduces hardware costs while maintaining acceptable performance levels for real-world applications.
+Furthermore, to enhance the speed and accuracy of identity retrieval, a specialized gender classification model is proposed to be deployed on the edge device as a metadata enhancement component. This lightweight model is trained on a carefully prepared dataset and achieves high classification accuracy while maintaining\\ computational efficiency suitable. By incorporating gender information as metadata, the system can intelligently partition the search space during identity matching operations, significantly reducing computational overhead and improving retrieval performance. This metadata-driven approach not only accelerates the matching process but also enhances the overall system's scalability by reducing the workload on the central server during peak operations.
 
-The scope of this thesis encompasses several key areas:
+The scope of this thesis is limited to implementing a complete pipeline using Docker containerization, with resource constraints of 1 CPU core and 512MB RAM per edge device simulation. This configuration enables the creation of multiple virtual edge devices on a single physical machine for comprehensive testing and validation. Data collected from these simulated edge devices is transmitted to the centralized server through a Kafka message broker cluster, ensuring reliable and scalable communication. Both the Kafka cluster and centralized server are implemented as Docker containers, providing a deployment-ready solution that can be easily adapted for production environments with minimal network configuration adjustments.
 
-\begin{itemize}
-    \item \textbf{System Architecture Design:} Development of a hybrid edge-server architecture that balances computational load between lightweight edge devices and a central server. This design minimizes network bandwidth requirements while keeping hardware costs manageable for SMEs.
-    
-    \item \textbf{AI Model Development and Training:} Implementation of custom lightweight models optimized for CPU inference, including:
-    \begin{itemize}
-        \item A person detection model achieving 85\% mAP at 14 FPS on only 1 CPU core and 512 MB of RAM
-        \item A gender classification model with 95\% accuracy for metadata enhancement
-    \end{itemize}
-    
-    \item \textbf{Intelligent Retrieval Optimization:} Development of a metadata-enhanced search algorithm that uses gender classification results to reduce the search space during identity matching, improving retrieval speed by 40\% and accuracy by 8\% compared to traditional approaches.
-    
-    \item \textbf{Containerized Deployment:} Implementation of the entire system using \\ containerization technology to ensure easy deployment, consistent performance across different environments, and simplified maintenance procedures.
-    
-    \item \textbf{Microservices Implementation:} Breaking down the Re-ID pipeline into \\ independent microservices, particularly for AI model serving through HTTP APIs. This approach enables horizontal scaling, improves system reliability, and allows for independent updates of system components.
 
-    \item \textbf{High-Throughput Model Serving:} Optimization of the inference pipeline to achieve up to 170 requests per second (RPS) for a 7 million parameter model. This includes full GPU utilization on the central server and elimination of bottlenecks that could limit processing throughput.
-    
-    \item \textbf{System Reliability:} Integration of monitoring, alerting, and health check mechanisms to ensure high system availability (99.5\% uptime) and quick identification of potential issues.
-\end{itemize}
+\section{Tentative solution} 
+\label{sec:tentative_solution}
 
-The ultimate goal is to provide SMEs with an accessible path to implement person Re-ID technology that fits within their budget constraints while delivering the customer experience improvements they need to remain competitive in today's market.
+Based on the presented objectives in Section \ref{sec:objectives}, the work composes of two main parts.
+
+In the first part, based on researched technologies, the pipeline of the system will be proposed. The system will consist of three main components: edge devices with CPU-only computing capabilities, Kafka message broker cluster, and a centralized server. The edge devices will be responsible for human detection and basic preprocessing before sending data to Kafka message brokers. These lightweight edge devices eliminate the need for expensive GPU hardware while maintaining real-time processing capabilities. The Kafka message broker cluster serves as the communication backbone, ensuring reliable and scalable message delivery between edge devices and the central server. The third component is the centralized server, which combines multiple services following a microservices architecture including Model service, ID verifier service, vector database, and multiple consumers that perform feature extraction and identity matching using these services. The human detection model will be carefully selected among state-of-the-art models based on the criteria of accuracy and computational efficiency so that it can run effectively on CPU-only edge devices. This distributed architecture ensures optimal resource utilization while maintaining system scalability and cost-effectiveness.
+
+The second part includes building a tailored, lightweight gender classification model specifically for limited computing resources and integrating it into the Re-ID pipeline for metadata enhancement. A custom gender classification model will be developed using EfficientNet-B0 architecture and trained on the P-DESTRE dataset to achieve high accuracy while maintaining computational efficiency. This gender classification capability will be integrated into the system to enhance the retrieval process by reducing the search space during identity matching operations. A prototype will be deployed in practice for comprehensive testing purposes, validating the system's performance in real-world scenarios and demonstrating its viability for deploying on resource-constrained devices.
 
 
 \section{Contributions}
 \label{sec:contribution}
 
-% This thesis presents two main contributions:
 \begin{enumerate}
     \item An application is deployed on hybrid edge-server devices and uses a microservices architecture, allowing for easy system scaling (increasing the number of cameras). It includes:
     \begin{itemize}
+        \item An optimized Docker image for running the edge device processing flow with custom CPU and RAM configurations, tailored for deployment on CPU-only devices.
+        \item Optimized Docker images for deploying multiple model inference services through Ray Serve, including feature extraction and gender classification models, enabling high throughput and low latency for model inference via RESTful APIs.
         \item A custom-trained, lightweight gender classification model with 95\% accuracy for metadata enhancement.
         \item A vector database optimization algorithm for efficient identity retrieval. This uses a person's metadata (gender) to reduce the search space, improving retrieval speed and accuracy.
-    \item This thesis also provides an interactive web application. It lets users monitor the system, view live camera streams, and search for people using their metadata.
-\end{itemize} 
+    \end{itemize} 
+\item This thesis also provides an interactive web application. It lets users monitor the system, view live camera streams.
 \end{enumerate}
 
 \section{Organization of Thesis}
 \label{sec:organize}
+
+The remaining of this thesis will be organized as follows:
+
+\textbf{Chapter 2} presents a comprehensive literature review and foundation theory essential for understanding the proposed system. The chapter is divided into two main sections: related works covering recent advances in person Re-ID, edge computing in AI, and microservices architectures; and foundation theory providing detailed technical background on object detection (YOLOv11), object tracking (ByteTrack), feature extraction (OSNet and LightMBN), image classification (EfficientNet-B0), message queuing (Apache Kafka), model serving frameworks (Ray Serve), containerization (Docker), and vector databases (Redis). These investigations form the theoretical foundation upon which the proposed hybrid edge-server system is built.
+
+\textbf{Chapter 3} introduces the comprehensive methodology of the proposed hybrid edge-server person Re-ID system. This chapter presents the system overview and detailed implementation of three main components: the Kafka message broker cluster for reliable asynchronous communication, edge devices optimized for CPU-only human detection and preprocessing, and the centralized server managing microservices including model inference, vector database operations, and identity matching. The chapter also covers the deployment strategies, hardware implementations, and the integration of lightweight models specifically designed for resource-constrained environments.
+
+\textbf{Chapter 4} presents the experimental results and evaluation of the deployed system. This chapter covers the environmental setup including hardware specifications for both edge devices and the centralized server, dataset preparation and evaluation metrics, performance analysis of edge device processing capabilities, and evaluation of the custom gender classification model. The experimental results demonstrate the system's effectiveness in real-world scenarios and validate the viability of the proposed approach for SME deployment.
+
+\textbf{Chapter 5}, the final chapter, provides a comprehensive summary of the achieved results, discusses the contributions and limitations of the proposed system, and presents suggestions for future improvements and research directions.
 
 
 \end{document}
