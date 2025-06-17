@@ -1,0 +1,75 @@
+The performance of the detection module on edge devices was assessed using three different methods. The first involved running the module in its native PyTorch environment, while the second tested it after conversion to ONNX, finally the third tested it after conversion to OpenVINO. The module processed all images to generate an initial output before applying NMS to remove redundant bounding boxes and refine the final detections. Performance metrics were computed after applying NMS. In both cases, NMS's IoU threshold was set to 0.45, and the confidence threshold was 0.25. Consequently, only bounding boxes with a confidence score of at least 0.25 were considered, and two boxes were classified as overlapping if their IoU value was 0.45 or higher.
+
+The metrics for evaluating the performance of edge devices are:
+
+\begin{itemize}
+    \item \textbf{AP@0.5}: Measures the precision of object detection predictions at an Intersection over the Union threshold of 0.5.
+    \item \textbf{mAP}: Calculates the average precision across all classes and IoU thresholds, reflecting overall detection accuracy.
+    \item \textbf{FPS}: Represents the inference speed, showing how many frames the model processes per second.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{Results of Detection Module}
+\label{tab:detection_results}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Model} & \textbf{AP@0.5} & \textbf{mAP} & \textbf{FPS} \\
+\hline
+YOLOv8n & 0.9158 & 0.7831 & 10.8 \\
+\hline
+YOLOv10n & 0.9477 & 0.8157 & 11.4 \\
+\hline
+YOLOv11n & 0.9521 & 0.8203 & 12.1 \\
+\hline
+\end{tabular}
+\end{table}
+
+The metrics for evaluating model architecture:
+
+\begin{itemize}
+    \item \textbf{Params (M)}: The total number of model parameters (in millions), indicating memory requirements.
+    \item \textbf{FLOPS (B)}: The number of floating-point operations (in billions) required during inference, reflecting computational efficiency.
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{Computational complexity in comparison}
+\label{tab:computational_complexity}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Model} & \textbf{Params (M)} & \textbf{FLOPS (B)} \\
+\hline
+YOLOv8n & 3.1 & 8.8 \\
+\hline
+YOLOv10n & 2.7 & 8.7 \\
+\hline
+YOLOv11n & 2.6 & 6.5 \\
+\hline
+\end{tabular}
+\end{table}
+
+YOLOv11n was selected for our detection module based on its superior balance of accuracy and efficiency. Compared to YOLOv8n, YOLOv11n achieved higher detection performance (AP@0.5 of 0.9521 vs. 0.9158, and mAP of 0.8203 vs. 0.7831) while demonstrating competitive inference speed (12.1 FPS vs. 10.8 FPS). More importantly, YOLOv11n requires significantly fewer computational resources with 16.1\% fewer parameters (2.6M vs. 3.1M) and 26.1\% fewer FLOPS (6.5B vs. 8.8B). When compared to YOLOv10n, YOLOv11n shows marginal improvements in accuracy metrics (AP@0.5: 0.9521 vs. 0.9477, mAP: 0.8203 vs. 0.8157) with slightly higher throughput (12.1 FPS vs. 11.4 FPS) and reduced computational complexity (2.6M vs. 2.7M parameters). This combination of the highest accuracy metrics, competitive inference speed, and the lowest computational demands makes YOLOv11n the optimal choice for our resource-constrained person re-identification system, ensuring reliable detection performance while maintaining practical deployability on edge devices with severe hardware limitations.
+
+\begin{table}[h]
+\centering
+\caption{YOLOv11n performance comparison across model formats and CPU configurations}
+\label{tab:yolov11n_performance}
+\begin{tabular}{|l|c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{\textbf{Format}} & \multicolumn{3}{c|}{\textbf{1 Core CPU}} & \multicolumn{3}{c|}{\textbf{4 Core CPU}} \\
+\cline{2-7}
+ & \textbf{FPS} & \textbf{CPU (\%)} & \textbf{RAM (MB)} & \textbf{FPS} & \textbf{CPU (\%)} & \textbf{RAM (MB)} \\
+\hline
+.pt & 12.1 & 99.7 & 312 & 11.8 & 26 & 315 \\
+\hline
+ONNX & 9 & 99.8 & 352 & 10.5 & 94 & 355 \\
+\hline
+OpenVINO & 9.2 & 99.6 & 388 & 10.2 & 93 & 385 \\
+\hline
+\end{tabular}
+\end{table}
+
+The performance analysis reveals important trade-offs between different model formats in resource-constrained environments. While OpenVINO achieved moderate FPS (9.2) among single-core configurations, it consumed significantly more memory (388 MB) and maintained near-maximum CPU utilization (99.6\%). Similarly, ONNX format showed comparable performance (9.0 FPS) but with even higher memory consumption (352 MB) and maximum CPU usage (99.8\%). In contrast, the native PyTorch (.pt) format demonstrated the most balanced resource utilization, achieving superior FPS performance (12.1) with 312 MB RAM consumption and 99.7\% CPU usage on single-core configurations.
+
+For CPU-based device with severe constraints with 1 CPU core and 512 MB RAM, the native PyTorch format proves most suitable despite its lack of optimization features. While ONNX and OpenVINO formats support multi-core utilization for potential speedup, their resource overhead in single-core scenarios outweighs their performance benefits. The .pt format's superior FPS performance (12.1 vs. 9.2 for OpenVINO) combined with lower memory footprint makes it the optimal choice for deployment on edge devices where resource efficiency is more critical than absolute computational optimization.
