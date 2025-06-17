@@ -1,1 +1,135 @@
+This section evaluates Ray Serve's dynamic batching performance compared to baseline single request model inference, focusing on latency, throughput, batching efficiency, and scalability.
 
+\subsection{Experimental setup}
+
+The benchmark used Ray Serve with the following configuration:
+\begin{itemize}
+    \item \textbf{Deployment Configuration}:
+    \begin{itemize}
+        \item Number of replicas: 1 and 4 (comparison tested)
+        \item Max ongoing requests: 32
+        \item Ray actor options: 2.0 CPUs, 0.25 GPUs per replica
+    \end{itemize}
+    \item \textbf{Dynamic Batching}:\\
+    \texttt{@serve.batch(max\_batch\_size=32, batch\_wait\_timeout\_s=0.01)}
+    \item \textbf{Test Dataset}: 200 generated test images with CUDA acceleration
+\end{itemize}
+
+\subsection{Ray Serve serving methods evaluation}
+
+\subsubsection{Serving approaches comparison}
+
+Three approaches were evaluated: single request processing, standard batch processing, and true batch processing with dynamic batching.
+
+\textbf{Single Request Processing} handles requests individually and sequentially. Each request gets immediate processing but may not fully utilize GPU capacity since GPUs are optimized for parallel operations.
+
+\textbf{Standard Batch Processing (True Batch)} groups requests into fixed-size batches before inference. This improves GPU utilization through parallel processing but introduces waiting time as requests must wait for the batch to fill.
+
+\textbf{Batch Processing with Dynamic Batching} uses Ray Serve's \texttt{@serve.batch} decorator that waits for a specified timeout to accumulate requests into batches in real-time. Unlike standard batch processing which uses fixed input matrices, dynamic batching adapts by collecting available requests within the wait time window and processes them together to optimize GPU utilization.
+
+
+
+\begin{table}[htbp]
+\centering
+\caption{Serving methods performance comparison}
+\label{tab:serving_methods}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Method} & \textbf{RPS} & \textbf{Avg Latency (ms)} & \textbf{P95 Latency (ms)} & \textbf{Success Rate} \\
+\hline
+Single Request & 43.79 & 22.83 & 30.85 & 100\% \\
+Dynamic Batching & 68.45 & 14.62 & 18.95 & 100\% \\
+True Batch (10×10) & 82.30 & 12.15 & 16.20 & 100\% \\
+\hline
+\end{tabular}
+\end{table}
+
+As illustrated in Table~\ref{tab:serving_methods}, true batch processing achieves the best performance at 82.30 RPS with 12.15ms latency—an 88\% improvement over single requests. Dynamic batching shows 56\% improvement (68.45 RPS). The progressive improvement (43.79 → 68.45 → 82.30 RPS) validates that batching effectively optimizes GPU utilization and reduces per-request overhead.
+
+\subsubsection{Request pattern impact analysis}
+
+To evaluate Ray Serve's performance under different load conditions, three request patterns were tested:
+
+\textbf{Sequential}: Requests are processed one after another in a synchronous manner, representing typical single-user scenarios.
+
+\textbf{Concurrent}: Multiple requests are sent asynchronously to Ray Serve simultaneously, simulating multiple users accessing the service at the same time. This pattern tests the system's ability to handle parallel processing and load distribution.
+
+\textbf{Burst}: High-throughput requests are suddenly sent to the server, then the load drops down, and this pattern repeats again and again. This simulates real-world scenarios with sudden traffic spikes followed by quiet periods, testing the system's ability to handle load fluctuations and queue management.
+
+\begin{table}[htbp]
+\centering
+\caption{Request pattern performance comparison}
+\label{tab:request_patterns}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Pattern} & \textbf{RPS} & \textbf{Avg Latency (ms)} & \textbf{P95 Latency (ms)} & \textbf{Improvement} \\
+\hline
+Sequential & 43.79 & 22.83 & 30.85 & Baseline \\
+Concurrent (10) & 121.05 & 78.41 & 113.97 & +176.4\% \\
+Burst (5×20) & 8.36 & 219.29 & 400.38 & -80.9\% \\
+\hline
+\end{tabular}
+\end{table}
+
+As shown in Table~\ref{tab:request_patterns}, concurrent processing with 10 parallel requests delivers exceptional performance (121.05 RPS, +176.4\%) but increases latency due to the throughput-latency trade-off. Ray Serve effectively utilizes parallel processing and dynamic batching for concurrent loads. However, burst patterns cause severe degradation (8.36 RPS, -80.9\%) due to queue saturation, showing that Ray Serve struggles with sudden load spikes and requires proper load balancing.
+
+\subsection{Ray Serve vs normal inference comparison}
+
+\subsubsection{Performance metrics comparison}
+
+\begin{table}[htbp]
+\centering
+\caption{System performance metrics comparison}
+\label{tab:system_comparison}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Method} & \textbf{RPS} & \textbf{Avg Latency (ms)} & \textbf{P95 Latency (ms)} & \textbf{Efficiency} \\
+\hline
+\multicolumn{5}{|c|}{\textbf{Sequential Processing}} \\
+\hline
+Normal inference & 40.44 & 24.72 & 28.30 & Baseline \\
+Ray Serve single & 43.79 & 22.83 & 30.85 & +8.4\% \\
+\hline
+\multicolumn{5}{|c|}{\textbf{Batch Processing}} \\
+\hline
+Normal inference batch & 68.58 & 14.58 & 19.44 & Baseline \\
+Ray Serve true batch & 82.30 & 12.15 & 16.20 & +20.0\% \\
+\hline
+\end{tabular}
+\end{table}
+
+Ray Serve shows clear advantages in both sequential and batch processing. In sequential processing, Ray Serve achieves 8.4\% better performance (43.79 vs 40.44 RPS) with improved latency (22.83ms vs 24.72ms) through optimized request handling and efficient resource management. For batch processing, Ray Serve significantly outperforms normal inference with 20.0\% improvement (82.30 vs 68.58 RPS) and better latency (12.15ms vs 14.58ms), demonstrating the effectiveness of dynamic batching mechanisms.
+
+\subsubsection{Scaling behavior analysis}
+
+\begin{table}[htbp]
+\centering
+\caption{Replica configuration performance comparison}
+\label{tab:replica_comparison}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Configuration} & \textbf{Single RPS} & \textbf{Concurrent RPS} & \textbf{Concurrent P95 (ms)} \\
+\hline
+1 Replica & 43.49 & 81.30 & 182.55 \\
+4 Replicas & 40.11 & 84.32 & 440.41 \\
+\hline
+\end{tabular}
+\end{table}
+
+Scaling from 1 to 4 replicas provides minimal benefits. Single request performance actually decreases (43.49 → 40.11 RPS), and concurrent processing improves only 3.7\% (81.30 → 84.32 RPS). Most concerning is the 141\% increase in P95 latency (182.55 → 440.41ms), indicating resource contention and coordination overhead. For this workload, single replica configuration is optimal.
+
+\subsection{Performance analysis and conclusions}
+
+The benchmark reveals key insights about Ray Serve performance:
+
+\textit{Sequential processing:} Ray Serve outperforms normal inference by 8.4\% (43.79 vs 40.44 RPS), demonstrating meaningful optimization benefits for single request processing.
+
+\textit{Batching advantages:} True batch processing significantly outperforms single requests (82.30 vs 43.79 RPS), effectively leveraging GPU parallelism and reducing per-request overhead.
+
+\textit{Concurrent processing:} Ray Serve excels in concurrent scenarios with 176.4\% improvement, making it ideal for high-throughput applications.
+
+\textit{Burst limitations:} Performance degrades severely (-80.9\%) under burst loads, highlighting the need for proper load balancing and gradual scaling.
+
+\textit{Scaling challenges:} Additional replicas provide minimal benefits while increasing latency, suggesting careful performance testing before horizontal scaling.
+
+\textbf{Recommendation:} Ray Serve is most beneficial for applications requiring high concurrent throughput and efficient batching. Normal inference remains suitable for simple sequential processing with minimal infrastructure needs.

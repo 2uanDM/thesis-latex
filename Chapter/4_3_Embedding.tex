@@ -1,0 +1,36 @@
+This experiment evaluates lightweight feature extraction models for person Re-ID using internally created video data. The primary objective is identifying models that achieve optimal accuracy-efficiency trade-offs suitable for deployment in resource-constrained environments requiring fast inference.
+
+We focused on lightweight architectures, particularly OSNet and LightMBN, designed for efficient feature extraction while maintaining high discriminative power. These models were evaluated on their ability to generate meaningful embeddings from video frames and accurately retrieve correct identities across different appearances. Additionally, we compared lightweight models against SOTA Re-ID models to analyze performance-computational cost trade-offs, particularly inference speed.
+
+The emphasis on lightweight models addresses the need for Re-ID deployment on edge devices with limited computational resources and real-time processing requirements. Traditional high-accuracy Re-ID models often demand significant computational power, making them impractical for such environments.
+
+Table presents a comprehensive performance comparison of various ReID models on the CUHK03-D dataset. OSNet demonstrates an exceptional balance between computational efficiency and performance, achieving competitive mAP (63.4\%) and Rank-1 accuracy (65.2\%) with only 2.2 million parameters.
+
+\begin{table}[ht]
+\centering
+\caption{Performance comparison of models on CUHK03-D dataset}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Model} & \textbf{mAP (\%)} & \textbf{R-1 (\%)} & \textbf{Params (Million)} \\ 
+\hline
+OSNet \cite{zhou2019omniscalefeaturelearningperson} & 63.4 & 65.2 & \textbf{2.2} \\ 
+LightMBN \cite{Herzog_2021} & \textbf{82.9} & \textbf{85.9} & 9.0 \\ 
+HACNN \cite{li2018harmoniousattentionnetworkperson} & 37.5 & 38.2 & 2.7 \\ 
+ResNet50 \cite{he2015deepresiduallearningimage} & 54.7 & 57.3 & 24.5 \\ 
+SCSN \cite{Chen_2020_CVPR} & 81.0 & 84.7 & $\sim$26 \\ 
+Relation-Net \cite{park2019relationnetworkpersonreidentification} & 69.6 & 74.4 & 43.7 \\ 
+RGA-SC \cite{zhang2020relationawareglobalattentionperson} & 74.5 & 79.6 & 27.5 \\ 
+HPM \cite{fu2018horizontalpyramidmatchingperson} & 57.5 & 63.9 & 31.9 \\ 
+ProNet++ \cite{wang2023rethinkingpersonreidentificationprojectiononprototypes} & 79.1 & 82.6 & $\sim$22 \\ 
+NFormer \cite{wang2022nformerrobustpersonreidentification} & 74.7 & 77.3 & $\sim$24 \\ 
+\hline
+\end{tabular}
+\label{tab:cuhk03_comparison}
+\end{table}
+
+
+OSNet's parameter efficiency is remarkable: 81.6\% fewer parameters than LightMBN (9.0M), 91.7\% fewer than ProNet++ ($\sim$22M), and 91.5\% fewer than SCSN ($\sim$26M). While LightMBN achieves superior accuracy metrics (82.9\% mAP, 85.9\% R-1), OSNet delivers 73.1\% of LightMBN's mAP and 75.9\% of its Rank-1 accuracy using only 24.4\% of the parameters.
+
+Compared to HACNN with similar parameter count (2.7M), OSNet demonstrates substantially better performance with 25.9 and 27.0 percentage point advantages in mAP and Rank-1 accuracy, respectively. Against ResNet50 (24.5M parameters), OSNet maintains competitive 63.4\% mAP while using just 9.0\% of the parameters.
+
+Given these findings, OSNet was chosen for the thesis implementation because of its outstanding balance between computational efficiency and performance metrics. This model is particularly well-suited for deployment on edge devices with limited resources, where reducing computational demands is essential while preserving sufficient Re-ID performance for real-time processing requirements.

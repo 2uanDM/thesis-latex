@@ -9,7 +9,7 @@ The centralized server architecture represents a most principal component in the
     \label{fig:centralized_server_overview}
 \end{figure}
 
-\subsection{System Data Flow and Processing Pipeline}
+\subsection{System data flow and processing pipeline}
 
 The centralized server architecture orchestrates a complex data flow that transforms raw video streams into actionable identity verification results through multiple interconnected services. As depicted in Figure \ref{fig:centralized_server_overview}, the processing pipeline begins when edge devices capture and preprocess video frames, transmitting video frames, cropped person detections, and bounding box coordinates through Kafka message queues to the centralized server.
 
@@ -40,7 +40,7 @@ Processed results, including verified identities, gender classifications, boundi
 The architecture's microservice design ensures fault tolerance and independent scaling, where individual services can be replicated or upgraded without affecting the overall system operation, making it suitable for production deployment in enterprise surveillance environments.
 
 
-\subsection{Models Service}
+\subsection{Models service}
 
 This section examines the implementation details of the \textbf{Models Service}, which performs feature extraction and gender classification on detected person regions. The service is built using Ray Serve, a scalable model serving library designed for building high-performance online inference APIs. Ray Serve provides several key features and performance optimizations specifically beneficial for serving PyTorch models, including dynamic request batching, multi-node and multi-GPU serving capabilities, and automatic load balancing across distributed computing resources.
 
@@ -132,7 +132,7 @@ The inference process applies softmax activation to the model's logits using \te
 
 \textbf{Search Space Optimization}: The primary motivation for gender classification lies in its ability to significantly reduce computational overhead during identity verification queries. By classifying detected persons into gender categories, the system can partition the vector database and limit similarity searches to gender-specific subsets. This optimization reduces the average number of embedding comparisons by approximately 50\%, directly translating to faster query response times and improved system scalability. The gender-based partitioning strategy is particularly effective in surveillance scenarios where gender distribution is typically balanced, ensuring that both partitions contribute meaningfully to search space reduction without creating significant load imbalances.
 
-\subsection{ID Verifier Service}
+\subsection{ID verifier service}
 \label{sec:id_verifier_service}
 The ID Verifier Service implements an identity verification pipeline that combines gender-based search space partitioning with embedding similarity search to determine whether newly detected persons correspond to existing identities in the system database. This service operates as an essential component in the person Re-ID pipeline, receiving "non-verified" IDs from the tracking module and returning verified identity assignments with associated confidence scores.
 
@@ -181,7 +181,7 @@ The ID Verifier Service exposes a RESTful API through a single endpoint (\texttt
 
 \textbf{Response Structure}: The API returns structured responses containing verified identity assignments, similarity scores, matching confidence levels, and additional metadata required for tracking module integration.
 
-\subsection{Embedding Storage}
+\subsection{Embedding storage}
 
 Embedding storage represents a critical component of the identity management system, responsible for persistently storing and retrieving body embeddings of identified individuals. This storage mechanism enables the system to re-identify people across frames and potentially across multiple cameras in distributed surveillance environments. To achieve the required performance and scalability while maintaining cost-effectiveness for deployment on resource-constrained devices, we utilize Redis, a high-performance in-memory data structure store, as the underlying storage engine.
 

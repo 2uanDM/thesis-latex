@@ -100,11 +100,11 @@ Kafka's leader election mechanism ensures high availability and fault tolerance 
 
 This election process typically completes within seconds, ensuring minimal disruption to the Re-ID data processing pipeline.
 
-\section{Kafka brokers}
+\subsection{Kafka brokers}
 
 The Kafka message broker cluster serves as the communication backbone between edge devices and the centralized server in the distributed Re-ID system. This section details the broker configuration, message serialization strategies, and the rationale behind our architectural decisions.
 
-\subsubsection{Broker Configuration and Topology}
+\subsubsection{Broker configuration and topology}
 
 The proposed Kafka cluster employs a three-broker architecture deployed within a containerized environment using Docker, strategically designed to achieve optimal fault tolerance while maintaining resource efficiency for SME deployments. This distributed topology addresses the critical requirements of real-time person Re-ID systems through carefully orchestrated broker configurations and message flow patterns.
 
@@ -290,7 +290,7 @@ The consumer configuration emphasizes parameters specific to server-side process
 
 This server-side configuration complements the edge device producer settings, creating an end-to-end optimized messaging pipeline that balances high-throughput video processing with the computational demands of real-time person re-identification.
 
-\subsection{Configuration Summary}
+\subsection{Configuration summary}
 
 The following tables summarize the key configuration parameters for different components of the Kafka cluster deployment in the Re-ID system.
 

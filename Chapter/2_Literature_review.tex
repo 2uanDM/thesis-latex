@@ -5,7 +5,7 @@ Chapter~\ref{chapter:intro} established the foundational context by identifying 
 \section{Related works}
 \label{sec:related}
 
-\subsection{Person Re-Identification}
+\subsection{Person re-identification}
 \label{sec:personreid}
 
 Recent advances in person Re-ID have significantly enhanced performance across various scenario, primarily relying on powerful computational resources. In the context of visible–infrared ReID, Guo et al. (2025) introduced the Region‑based Augmentation and Cross Modality Attention (RACA) model \cite{visible-infrared-reid}, which leverages region-level augmentation (PedMix) and a modality feature transfer (MFT) module with cross-attention to reduce interference between modalities, yielding notable improvements on SYSU‑MM01 and RegDB benchmarks.
@@ -21,7 +21,7 @@ Building upon OSNet's efficiency, \textbf{LightMBN} (Lightweight Multi-Branch Ne
 Given their complementary strengths in efficiency and performance, OSNet and LightMBN form a robust backbone choice for deployment in lightweight Re-ID pipelines.
 
 
-\subsection{Edge Computing in AI}
+\subsection{Edge computing in AI}
 \label{sec:edgecomputing}
 
 Edge computing has emerged as a transformative approach in artificial intelligence, bringing computational resources closer to where data is generated and directly to end users. The global edge AI market size was valued at approximately USD 20.78 billion in 2024 and is expected to grow significantly, at a rate of 21.7\% annually, from 2025 to 2030 \cite{grandview2024}. This growth indicates a strong demand for real-time processing, lower latency, and improved privacy in various AI applications.
@@ -34,7 +34,7 @@ Edge AI is becoming more widely available across many applications. Edge Intelli
 
 Therefore, this thesis leverages edge computing paradigms to distribute computational workloads across edge devices, enabling cost-effective deployment of person Re-ID systems while maintaining real-time performance requirements.
 
-\subsection{Microservices and Distributed Systems}
+\subsection{Microservices and distributed systems}
 \label{sec:microservice}
 
 Microservices have become increasingly popular for building scalable AI systems. In general, microservices focus on modularity, meaning each service handles a specific function independently. These services are loosely connected, easy to deploy individually, and can scale separately \cite{wiki2024_microservices}.
@@ -171,7 +171,7 @@ Among the various container technologies, Docker \cite{docker_intro} is a widely
 
 Overall, with Docker, the system can be deployed on any machine with Docker installed, ensuring consistent behavior across different environments. Given these advantages, this thesis adopts Docker as the containerization technology using for both edge device and centralized server deployment.
 
-\subsection{Vector Database}
+\subsection{Vector database}
 \label{sec:vector_database}
 
 Traditional databases, such as OLTP (Online Transaction Processing) and OLAP (Online Analytical Processing) systems, are optimized for structured queries and aggregated data operations. However, these systems typically face limitations when handling high-dimensional, continuous data like image feature embeddings. In contrast, \textbf{vector databases} are specifically designed to efficiently store and query vector representations, enabling rapid similarity searches based on distance metrics, notably cosine similarity.
