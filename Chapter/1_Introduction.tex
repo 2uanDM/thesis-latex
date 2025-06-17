@@ -1,22 +1,21 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-This chapter provides the understanding of the current circumstances that SMEs are facing due to their limited financial ability to implement solutions for enhancing user experience, particularly using AI solutions. This also forms the foundation that brought me to develop this thesis, helping organizations with limited resources still be able to access person Re-ID technologies.
-
+This chapter explores the significant financial constraints that prevent many organizations from implementing advanced solutions to enhance user experience, particularly those based on AI. This challenge forms the foundational motivation for this thesis: to develop a solution that enables organizations with limited resources to access and benefit from powerful technologies like person Re-ID.
 
 \section{Background and motivation}
 \label{sec:background}
 
 \subsection{Background}
 
-SMEs across various industries are facing an extraordinary challenge in today's competitive market. Customer expectations have fundamentally shifted from simple product transactions to demanding high-quality service provided by staff members. This change is particularly evident in sectors like \gls{FnB} and retail, where 65\% of customers report that staff responsiveness and personalized attention influence their purchasing decisions more than traditional advertising \cite{customer_experience}.
+In today's competitive market, many businesses face an extraordinary challenge in meeting evolving customer expectations, a hurdle felt most acutely by those operating on tight budgets. Customer expectations have fundamentally shifted from simple product transactions to demanding high-quality service provided by staff members. This change is particularly evident in sectors like \gls{FnB} and retail, where 65\% of customers report that staff responsiveness and personalized attention influence their purchasing decisions more than traditional advertising \cite{customer_experience}.
 
-SMEs operate under much tighter financial constraints than large corporations. In the FnB sector alone, 45\% of businesses report that raw materials account for over 30\% of their selling prices, leaving little room for major technology investments \cite{customer_experience2}. Over 60\% of FnB businesses have experienced revenue decreases while facing rising operational costs including rent, labor, and materials \cite{customer_experience3}.
+These financial constraints are a defining operational reality for many organizations, setting them apart from large corporations. In the FnB sector alone, 45\% of businesses report that raw materials account for over 30\% of their selling prices, leaving little room for major technology investments \cite{customer_experience2}. Furthermore, over 60\% of FnB businesses have experienced revenue decreases while facing rising operational costs, including rent, labor, and materials \cite{customer_experience3}.
 
-This creates an ``innovation deadlock'' where organizations:
+This creates an ``innovation deadlock'' where these organizations:
 \begin{itemize}
     \item Recognize the critical need for better staff management and service optimization solutions.
-    \item Understand that technology could provide competitive advantages in monitoring and improving staff performance.
+    \item Understand that technology could provide competitive advantages in monitoring and improving staff performance, yet lack the capital to invest.
 \end{itemize}
 
 To help organizations with limited hardware resources still access Re-ID technology, they need solutions for surveillance problems like staff Re-ID to visualize activity maps and optimize service delivery. Modern AI technologies like Re-ID offer powerful solutions for understanding staff behavior patterns, monitoring service coverage across different areas, and identifying bottlenecks in staff allocation. Re-ID systems can seamlessly track staff movements across different sections of a store or restaurant, measure response times to customer needs, and identify areas where additional staff presence is required.
@@ -63,14 +62,14 @@ This approach aims to reduce hardware costs at the edge, but it presents its own
 
 In summary, the analysis of existing Re-ID architectures reveals a significant opportunity: while current solutions fail to meet the needs of resource-constrained organizations due to prohibitive costs, network dependencies, and operational complexity, the underlying technology holds immense potential for transforming staff monitoring and operational efficiency. This gap between technological capability and practical accessibility represents not just a challenge, but a compelling opportunity to democratize advanced surveillance technology.
 
-The persistent ``innovation deadlock'' that prevents smaller organizations from leveraging Re-ID technology can be broken through thoughtful engineering and architectural innovation. By addressing the fundamental cost and complexity barriers, we can unlock the transformative potential of person Re-ID for organizations that need it most—those operating with limited resources but requiring maximum operational efficiency.
+The persistent ``innovation deadlock'' that prevents smaller organizations from leveraging Re-ID technology can be broken through thoughtful engineering and architectural innovation. By addressing the fundamental cost and complexity barriers, we can unlock the transformative potential of person Re-ID for organizations that need it most-those operating with limited resources but requiring maximum operational efficiency.
 
 This thesis presents a feasible solution: a novel hybrid architecture specifically engineered to make Re-ID technology affordable, scalable, and manageable for surveillance systems in resource-constrained environments. Our approach promises to bridge the gap between cutting-edge AI capabilities and practical deployment constraints, enabling organizations of all sizes to harness the power of intelligent staff monitoring and operational optimization.
 
 \section{Objectives and scope of thesis} 
 \label{sec:objectives}
 
-Section \ref{sec:background} presents various challenges that SMEs are facing due to their limited financial ability to implement solutions for internal surveillance. The first objective of this thesis is to design and implement a hybrid edge-server person Re-ID pipeline that can be deployed on resource-constrained devices, especially on CPU-based devices for edge deployment. This proves that GPU-based devices are not requisite for person Re-ID. This pipeline can detect, extract semantic vision features, and track person movements to report the results to the central server. The output of the pipeline can be used for various applications such as staff monitoring, service coverage analysis, and operational optimization.
+Section \ref{sec:background} presents various challenges that small organizations are facing due to their limited financial ability to implement solutions for internal surveillance. The first objective of this thesis is to design and implement a hybrid edge-server person Re-ID pipeline that can be deployed on resource-constrained devices, especially on CPU-based devices for edge deployment. This proves that GPU-based devices are not requisite for person Re-ID. This pipeline can detect, extract semantic vision features, and track person movements to report the results to the central server. The output of the pipeline can be used for various applications such as staff monitoring, service coverage analysis, and operational optimization.
 
 Furthermore, to enhance the speed and accuracy of identity retrieval, a specialized gender classification model is proposed to be deployed on the edge device as a metadata enhancement component. This lightweight model is trained on a carefully prepared dataset and achieves high classification accuracy while maintaining\\ computational efficiency suitable. By incorporating gender information as metadata, the system can intelligently partition the search space during identity matching operations, significantly reducing computational overhead and improving retrieval performance. This metadata-driven approach not only accelerates the matching process but also enhances the overall system's scalability by reducing the workload on the central server during peak operations.
 
@@ -110,7 +109,7 @@ The remaining of this thesis will be organized as follows:
 
 \textbf{Chapter 3} introduces the comprehensive methodology of the proposed hybrid edge-server person Re-ID system. This chapter presents the system overview and detailed implementation of three main components: the Kafka message broker cluster for reliable asynchronous communication, edge devices optimized for CPU-only human detection and preprocessing, and the centralized server managing microservices including model inference, vector database operations, and identity matching. The chapter also covers the deployment strategies, hardware implementations, and the integration of lightweight models specifically designed for resource-constrained environments.
 
-\textbf{Chapter 4} presents the experimental results and evaluation of the deployed system. This chapter covers the environmental setup including hardware specifications for both edge devices and the centralized server, dataset preparation and evaluation metrics, performance analysis of edge device processing capabilities, and evaluation of the custom gender classification model. The experimental results demonstrate the system's effectiveness in real-world scenarios and validate the viability of the proposed approach for SME deployment.
+\textbf{Chapter 4} presents the experimental results and evaluation of the deployed system. This chapter covers the environmental setup including hardware specifications for both edge devices and the centralized server, dataset preparation and evaluation metrics, performance analysis of edge device processing capabilities, and evaluation of the custom gender classification model. The experimental results demonstrate the system's effectiveness in real-world scenarios and validate the viability of the proposed approach for deployment on resource-constrained devices.
 
 \textbf{Chapter 5}, the final chapter, provides a comprehensive summary of the achieved results, discusses the contributions and limitations of the proposed system, and presents suggestions for future improvements and research directions.
 

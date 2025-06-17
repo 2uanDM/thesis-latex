@@ -2,8 +2,6 @@ The edge device processing pipeline presented in Figure \ref{fig:edges} illustra
 
 The pipeline operates through several integrated components that work together to achieve efficient video processing:
 
-\newpage
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1\textwidth]{Figure/edges.png}
@@ -12,20 +10,19 @@ The pipeline operates through several integrated components that work together t
 \end{figure}
 
 \begin{itemize}
-    \item \textbf{Source parser}: This component handles input from RTSP cameras delivering live video streams or can be loaded from video sources. Both inputs are uniformly processed through an OpenCV-based source parser that standardizes the video streams into 1080p frames, thus simplifying subsequent processing steps and minimizing resource overhead.
+    \item \textit{Source parser}: This component handles input from RTSP cameras delivering live video streams or can be loaded from video sources. Both inputs are uniformly processed through an OpenCV-based source parser that standardizes the video streams into 1080p frames, thus simplifying subsequent processing steps and minimizing resource overhead.
     
-    \item \textbf{Human detector}: The standardized video frames are then processed by a lightweight yet robust YOLOv11 object detection model, excellently suited for human detection. This human detector module identifies human subjects within each frame, generating precise bounding box coordinates and essential metadata such as timestamp and device identifier.
+    \item \textit{Human detector}: The standardized video frames are then processed by a lightweight yet robust YOLOv11 object detection model, excellently suited for human detection. This human detector module identifies human subjects within each frame, generating precise bounding box coordinates and essential metadata such as timestamp and device identifier.
     
-    \item \textbf{Image Compressor}: To further optimize resource usage, the original video frames undergo simultaneous compression using OpenCV's image processing capabilities, producing compressed JPG images. This significantly reduces the data size but still feasible for constrained CPU environments, without compromising analytical quality.
+    \item \textit{Image Compressor}: To further optimize resource usage, the original video frames undergo simultaneous compression using OpenCV's image processing capabilities, producing compressed JPG images. This significantly reduces the data size but still feasible for constrained CPU environments, without compromising analytical quality.
     
-    \item \textbf{Message Serializer}: Detection results along with the compressed images are efficiently structured into Avro schema serialized messages, significantly improving serialization speed and resource efficiency.
+    \item \textit{Message Serializer}: Detection results along with the compressed images are efficiently structured into Avro schema serialized messages, significantly improving serialization speed and resource efficiency.
     
-    \item \textbf{Kafka producer}: Finally, these structured messages are published to Kafka \texttt{reid\_input} topic via Kafka producer framework, enabling asynchronous, real-time communication with centralized server without being blocked by the centralized server processing.
+    \item \textit{Kafka producer}: Finally, these structured messages are published to Kafka \texttt{reid\_input} topic via Kafka producer framework, enabling asynchronous, real-time communication with centralized server without being blocked by the centralized server processing.
 \end{itemize}
 
-
-
 This targeted approach ensures minimal resource consumption, reduced network bandwidth requirements, prompt local analytics responses, and increased scalability by distributing the video processing workload across multiple constrained CPU-based edge devices.
+
 
 \subsection{Human detector}
 \label{sec:edge_human_detection}
@@ -110,18 +107,11 @@ Similar to the ONNX conversion, the \texttt{dynamic=True} flag ensures that the 
 \end{itemize}
 
 
-To determine the optimal model format for edge deployment scenarios, a comprehensive comparative evaluation is conducted across multiple performance metrics in Section~\ref{sec:edge_evaluation}. This evaluation systematically analyzes inference latency, memory consumption, CPU utilization, and detection accuracy across PyTorch (.pt), ONNX, and OpenVINO formats under the specified hardware constraints. The results provide empirical evidence to guide format selection based on specific deployment requirements and hardware configurations.
+To determine the optimal model format for edge deployment scenarios, a comprehensive comparative evaluation is conducted across multiple performance metrics in Section~\ref{sec:detection_experiments}. This evaluation systematically analyzes inference latency, memory consumption, CPU utilization, and detection accuracy across PyTorch (.pt), ONNX, and OpenVINO formats under the specified hardware constraints. The results provide empirical evidence to guide format selection based on specific deployment requirements and hardware configurations.
 
 
-\subsection{Image compression with OpenCV}
+\subsection{Image compressor with OpenCV}
 \label{sec:edge_image_compression}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Figure/edge_compress.png}
-    \caption{Image compression with OpenCV}
-    \label{fig:edge_compress}
-\end{figure}
 
 As mentioned in Section \ref{sec:message_serialization}, the original video frames of FullHD resolution (1920x1080) have a size of around 2MB. If we keep the original image quality, the total message size would be too large for practical network bandwidth and storage. Therefore, there is a need to compress the image quality.
 
@@ -202,7 +192,7 @@ The edge device application is containerized using Docker to ensure consistent d
 
 \subsubsection{Multi-stage build architecture}
 
-The Docker configuration utilizes a two-stage build process designed to maximize efficiency and minimize the final container footprint:
+The Docker configuration utilizes a two-stage build process designed to maximize efficiency and minimize the final container footprint. This approach addresses the specific constraints of edge computing environments where storage space and deployment speed are critical considerations.
 
 \begin{lstlisting}[language=yaml, caption={Multi-stage Docker build configuration for edge deployment}]
 # Build stage

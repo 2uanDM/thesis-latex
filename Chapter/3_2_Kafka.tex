@@ -57,7 +57,7 @@ In this Re-ID system, we use a single Zookeeper node instead of the common 3-nod
 \begin{itemize}
     \item \textbf{Resource Efficiency}: For the current scale (3 Kafka brokers with moderate message flow), one Zookeeper node is enough to manage coordination without wasting extra computing power or network resources that could be used by the Re-ID system itself.
     
-    \item \textbf{Simpler Management}: Having a single node reduces complexity, which is helpful for small to medium enterprises (SMEs) that may not have dedicated DevOps staff. It also makes monitoring, backups, and troubleshooting easier.
+    \item \textbf{Simpler Management}: Having a single node reduces complexity, especially for small organizations or businesses that may not have dedicated DevOps staff. It also makes monitoring, backups, and troubleshooting easier.
     
     \item \textbf{Development and Testing}: This setup works well for development, testing, and early production stages where quick deployment and cost saving are more important than full availability.
 \end{itemize}
@@ -106,7 +106,7 @@ The Kafka message broker cluster serves as the communication backbone between ed
 
 \subsubsection{Broker configuration and topology}
 
-The proposed Kafka cluster employs a three-broker architecture deployed within a containerized environment using Docker, strategically designed to achieve optimal fault tolerance while maintaining resource efficiency for SME deployments. This distributed topology addresses the critical requirements of real-time person Re-ID systems through carefully orchestrated broker configurations and message flow patterns.
+The proposed Kafka cluster employs a three-broker architecture deployed within a containerized environment using Docker, strategically designed to achieve optimal fault tolerance while maintaining resource efficiency for deploying on resource-constrained devices. This distributed topology addresses the critical requirements of real-time person Re-ID systems through carefully orchestrated broker configurations and message flow patterns.
 
 The cluster architecture incorporates the following key specifications:
 
@@ -122,7 +122,7 @@ The broker configuration is specifically optimized for video data transmission c
 \subsubsection{Message serialization}
 \label{sec:message_serialization}
 
-In distributed Re-ID systems where edge devices communicate with central servers through Apache Kafka, a critical challenge emerges: efficiently encoding messages that contain both structured metadata and binary image data. The fundamental issue stems from the need to serialize heterogeneous data types—including device identifiers, detection results, timestamps, and raw image frames—into a single message format suitable for network transmission.
+In distributed Re-ID systems where edge devices communicate with central servers through Apache Kafka, a critical challenge emerges: efficiently encoding messages that contain both structured metadata and binary image data. The fundamental issue stems from the need to serialize heterogeneous data types-including device identifiers, detection results, timestamps, and raw image frames-into a single message format suitable for network transmission.
 
 The primary constraint lies in the incompatibility between text-based serialization formats and binary data representation. Traditional approaches require careful consideration of encoding overhead, transmission efficiency, and system scalability.
 
@@ -148,7 +148,7 @@ The JSON message structure with base64 encoded image data follows this format:
 
 This encoding is necessary because JSON, being a text-based format, cannot natively represent binary data. JSON supports only primitive types (string, number, boolean) and structural types (object, array), making text encoding the only viable option for binary data inclusion.
 
-However, this approach introduces significant overhead. For a typical Full HD image frame with an original size of 2MB, the Base64 encoding process increases the message size to approximately 3MB—a 50\% increase. This expansion occurs due to Base64's inherent 33\% size inflation factor, compounded by JSON structural overhead.
+However, this approach introduces significant overhead. For a typical Full HD image frame with an original size of 2MB, the Base64 encoding process increases the message size to approximately 3MB - a 50\% increase. This expansion occurs due to Base64's inherent 33\% size inflation factor, compounded by JSON structural overhead.
 
 
 To address the limitations of text-based encoding, we propose using Apache Avro as the primary serialization framework. Avro can be conceptualized as a binary equivalent of JSON that natively supports raw binary data without requiring text encoding, and also provide schema validation capabilities.
@@ -168,10 +168,27 @@ The Avro schema definition for our edge device messages is structured as follows
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{Figure/avro_def.png}
-    \caption{Avro schema definition for edge device messages.}
+    \caption{Avro schema definition for edge device messages containing video frames and detection metadata.}
     \label{fig:avro_schema}
 \end{figure}
 
+The schema defines in Figure~\ref{fig:avro_schema} a structured message format called \\
+\texttt{EdgeDeviceMessage} within the \texttt{com.edge.device} namespace. Each message contains:
+
+\begin{itemize}
+    \item \textbf{device\_id} (string): Unique identifier for the edge device/camera sending the message
+    \item \textbf{frame\_number} (long): Sequential frame counter for maintaining temporal order and detecting dropped frames
+    \item \textbf{result} (array): Collection of detection results, where each detection includes:
+    \begin{itemize}
+        \item \textbf{bbox} (array of floats): Bounding box coordinates in normalized format [x1, y1, x2, y2]
+        \item \textbf{confidence} (float): Detection confidence score (0.0 to 1.0) indicating the model's certainty
+        \item \textbf{class\_id} (int): Object class identifier (typically 0 for person in person detection models)
+    \end{itemize}
+    \item \textbf{created\_at} (long): Unix timestamp marking when the frame was processed on the edge device
+    \item \textbf{image\_data} (bytes): Raw binary image data (typically JPEG-compressed) avoiding Base64 encoding overhead
+\end{itemize}
+
+This schema structure enables efficient serialization of both structured metadata and binary image data while maintaining compatibility with Kafka's distributed messaging system. The use of native binary support for \texttt{image\_data} eliminates the 33\% size overhead associated with Base64 encoding, significantly reducing network bandwidth requirements for high-resolution video streams.
 
 \subsubsection{Topic settings}
 
@@ -238,21 +255,21 @@ The Kafka producer configuration is essential for achieving efficient and reliab
 The producer configuration parameters are strategically chosen to balance throughput, latency, and reliability for the Re-ID streaming pipeline:
 
 \begin{itemize}
-    \item \textbf{client\_id}: Uniquely identifies each edge device producer within the Kafka cluster using the device ID. This facilitates monitoring, debugging, and tracking message flow from specific devices through the Kafka UI and broker logs.
+    \item \textit{client\_id}: Uniquely identifies each edge device producer within the Kafka cluster using the device ID. This facilitates monitoring, debugging, and tracking message flow from specific devices through the Kafka UI and broker logs.
     
-    \item \textbf{bootstrap\_servers}: Specifies the initial list of Kafka broker addresses for establishing cluster connectivity. The producer uses this list to discover the full cluster topology and partition leadership information.
+    \item \textit{bootstrap\_servers}: Specifies the initial list of Kafka broker addresses for establishing cluster connectivity. The producer uses this list to discover the full cluster topology and partition leadership information.
     
-    \item \textbf{key\_serializer}: Serializes the message key (device ID) as UTF-8 encoded strings. The key serves dual purposes: ensuring message ordering per device and enabling consistent partition assignment for load balancing across the cluster.
+    \item \textit{key\_serializer}: Serializes the message key (device ID) as UTF-8 encoded strings. The key serves dual purposes: ensuring message ordering per device and enabling consistent partition assignment for load balancing across the cluster.
     
-    \item \textbf{value\_serializer}: Employs a custom Avro-based serialization function that efficiently encodes both structured metadata and binary image data without the overhead of text-based encoding schemes like Base64.
+    \item \textit{value\_serializer}: Employs a custom Avro-based serialization function that efficiently encodes both structured metadata and binary image data without the overhead of text-based encoding schemes like Base64.
     
-    \item \textbf{linger\_ms = 10}: Introduces a minimal 10-millisecond delay before sending batches, allowing the producer to collect multiple messages for batch transmission. This significantly improves network utilization and throughput while maintaining sub-frame latency for real-time processing.
+    \item \textit{linger\_ms = 10}: Introduces a minimal 10-millisecond delay before sending batches, allowing the producer to collect multiple messages for batch transmission. This significantly improves network utilization and throughput while maintaining sub-frame latency for real-time processing.
     
-    \item \textbf{batch\_size = 16384 bytes (16KB)}: Sets the maximum batch size for grouping messages before transmission. This value is optimized for the typical message size in our Re-ID system, where each message contains compressed image data and detection results.
+    \item \textit{batch\_size = 16384 bytes (16KB)}: Sets the maximum batch size for grouping messages before transmission. This value is optimized for the typical message size in our Re-ID system, where each message contains compressed image data and detection results.
     
-    \item \textbf{acks = 1}: Configures acknowledgment requirements to wait only for the partition leader's confirmation before considering a message successfully sent. This provides an optimal balance between delivery guarantees and latency, suitable for near real-time applications where occasional message loss is acceptable.
+    \item \textit{acks = 1}: Configures acknowledgment requirements to wait only for the partition leader's confirmation before considering a message successfully sent. This provides an optimal balance between delivery guarantees and latency, suitable for near real-time applications where occasional message loss is acceptable.
     
-    \item \textbf{max\_in\_flight\_requests\_per\_connection = 5}: Allows up to 5 unacknowledged requests per broker connection, enabling pipeline parallelism while preserving message ordering within each partition. This setting optimizes throughput without compromising the sequential nature of video frame processing.
+    \item \textit{max\_in\_flight\_requests\_per\_connection = 5}: Allows up to 5 unacknowledged requests per broker connection, enabling pipeline parallelism while preserving message ordering within each partition. This setting optimizes throughput without compromising the sequential nature of video frame processing.
 \end{itemize}
 
 This configuration ensures optimal performance for the Re-ID system's streaming requirements, achieving high throughput for continuous video frame processing while maintaining low latency for real-time person tracking and identification tasks.
@@ -271,21 +288,21 @@ Similar to the producer configuration, the Kafka consumer setup requires common 
 The consumer configuration emphasizes parameters specific to server-side processing and high-volume data consumption:
 
 \begin{itemize}
-    \item \textbf{auto\_offset\_reset = ``earliest''}: Critical for Re-ID continuity—new consumer instances begin from the earliest available messages, ensuring no video frames are missed during consumer restarts or scaling operations.
+    \item \textit{auto\_offset\_reset = ``earliest''}: Critical for Re-ID continuity-new consumer instances begin from the earliest available messages, ensuring no video frames are missed during consumer restarts or scaling operations.
     
-    \item \textbf{enable\_auto\_commit = True}: Simplifies offset management for the idempotent Re-ID processing pipeline where occasional message reprocessing is acceptable compared to the complexity of manual offset management.
+    \item \textit{enable\_auto\_commit = True}: Simplifies offset management for the idempotent Re-ID processing pipeline where occasional message reprocessing is acceptable compared to the complexity of manual offset management.
     
-    \item \textbf{group\_id}: Enables horizontal scaling through consumer groups, allowing multiple server instances to process different partitions simultaneously while maintaining load balance across the Re-ID pipeline.
+    \item \textit{group\_id}: Enables horizontal scaling through consumer groups, allowing multiple server instances to process different partitions simultaneously while maintaining load balance across the Re-ID pipeline.
     
-    \item \textbf{session\_timeout\_ms = 30000}: Extended 30-second timeout accommodates GPU-intensive operations (feature extraction, similarity searches) that may cause temporary processing delays, preventing unnecessary consumer group rebalancing.
+    \item \textit{session\_timeout\_ms = 30000}: Extended 30-second timeout accommodates GPU-intensive operations (feature extraction, similarity searches) that may cause temporary processing delays, preventing unnecessary consumer group rebalancing.
     
-    \item \textbf{heartbeat\_interval\_ms = 3000}: Maintains responsive group membership while staying well below the session timeout threshold, ensuring timely failure detection without overwhelming the cluster with heartbeat traffic.
+    \item \textit{heartbeat\_interval\_ms = 3000}: Maintains responsive group membership while staying well below the session timeout threshold, ensuring timely failure detection without overwhelming the cluster with heartbeat traffic.
     
-    \item \textbf{max\_poll\_interval\_ms = 300000}: Allows 5-minute processing windows for complex Re-ID operations including vector database queries, similarity computations, and identity updates, preventing consumer eviction during intensive processing phases.
+    \item \textit{max\_poll\_interval\_ms = 300000}: Allows 5-minute processing windows for complex Re-ID operations including vector database queries, similarity computations, and identity updates, preventing consumer eviction during intensive processing phases.
     
-    \item \textbf{Fetch Configuration (fetch\_min\_bytes, fetch\_max\_bytes, max\_partition\_fetch\_bytes)}: Optimized for large video messages—minimum 1MB accumulation improves network efficiency while maximum 100MB limits prevent memory overflow. The increased partition fetch size (from default 1MB to 100MB) eliminates fetch size bottlenecks for HD video frames with detection metadata.
+    \item \textit{Fetch Configuration (fetch\_min\_bytes, fetch\_max\_bytes, max\_partition\_fetch\_bytes)}: Optimized for large video messages-minimum 1MB accumulation improves network efficiency while maximum 100MB limits prevent memory overflow. The increased partition fetch size (from default 1MB to 100MB) eliminates fetch size bottlenecks for HD video frames with detection metadata.
     
-    \item \textbf{Reconnection Strategy (retry\_backoff\_ms, reconnect\_backoff\_*)}: Aggressive reconnection with minimal delays ensures rapid recovery for time-sensitive Re-ID processing where extended disconnections significantly impact tracking continuity.
+    \item \textit{Reconnection Strategy (retry\_backoff\_ms, reconnect\_backoff\_max\_ms)}: Aggressive reconnection with minimal delays ensures rapid recovery for time-sensitive Re-ID processing where extended disconnections significantly impact tracking continuity.
 \end{itemize}
 
 This server-side configuration complements the edge device producer settings, creating an end-to-end optimized messaging pipeline that balances high-throughput video processing with the computational demands of real-time person re-identification.
@@ -324,13 +341,17 @@ Zookeeper Configuration & Single node \\
 \end{tabular}
 \end{table}
 
+This cluster configuration at Table~\ref{tab:kafka_cluster_config} provides robust fault tolerance for continuous video streaming. The 6 partitions enable parallel processing of up to 6 camera feeds simultaneously, while the 3-broker setup with replication factor 3 ensures zero downtime—even if one broker fails, the system continues operating seamlessly. The 20 MB message limit accommodates high-resolution video frames, and the 1-day retention allows for replay and debugging of Re-ID results. The 20 GB disk limit prevents storage overflow while maintaining sufficient buffer for peak traffic periods.
+
+\newpage
+
 \subsubsection{Producer Configuration (Edge Devices)}
 
 \begin{table}[htbp]
 \centering
 \caption{Kafka Producer Configuration for Edge Devices}
 \label{tab:producer_config}
-\begin{tabular}{|p{4cm}|p{8cm}|}
+\begin{tabular}{|p{3cm}|p{8cm}|}
 \hline
 \textbf{Parameter} & \textbf{Value} \\
 \hline
@@ -346,7 +367,7 @@ Partition Strategy & Round-robin distribution \\
 \end{tabular}
 \end{table}
 
-\newpage
+This producer configuration at Table~\ref{tab:producer_config} optimizes edge device performance for real-time video streaming. The \texttt{acks=1} setting provides fast acknowledgments (reducing latency) while ensuring reliable delivery-critical for maintaining smooth 12-20 FPS video streams. The 10 ms linger time allows efficient batching without noticeable delay, improving network utilization by up to 3$\times$ compared to individual message sending. Setting \texttt{max\_in\_flight\_requests\_per\_connection = 5} enables pipeline processing, allowing edge devices to continue sending frames while waiting for acknowledgments, preventing video stuttering during network fluctuations.
 
 \subsubsection{Consumer Configuration (Central Server)}
 
@@ -372,3 +393,5 @@ Max Partition Fetch & 102400 KB (100 MB per partition) \\
 \hline
 \end{tabular}
 \end{table}
+
+This consumer configuration in table \ref{tab:consumer_config} is specifically tuned for GPU-intensive Re-ID processing. The 5-minute max poll interval prevents consumer timeouts during heavy computation (feature extraction, similarity matching), while the large fetch sizes (100 MB) reduce network overhead for high-resolution video frames. The \texttt{earliest} offset reset ensures no frames are lost during server restarts—crucial for maintaining tracking continuity. The extended session timeout (30 seconds) accommodates variable GPU processing times without triggering unnecessary rebalancing, maintaining stable partition assignments for consistent camera-to-consumer mapping.

@@ -1,44 +1,57 @@
 The centralized server architecture represents a most principal component in the hybrid edge-server person Re-ID system, serving as the computational backbone for resource-intensive operations that exceed the capabilities of edge devices. While the CPU-based edge devices handle distributed object detection and initial preprocessing, the centralized server leverages its GPU computing resources to perform sophisticated model inference tasks, including feature extraction and gender classification. Additionally, the server manages vector database operations for identity storage and retrieval, coordinates multi-consumer message processing from Kafka streams, and maintains the overall system state for cross-camera identity matching, as illustrated in Figure \ref{fig:centralized_server_overview}. This centralized microservice-based approach enables the system to achieve optimal resource utilization by offloading computationally demanding tasks from resource-constrained edge devices to a dedicated server environment equipped with specialized hardware acceleration. The server's architecture is designed to handle concurrent processing of multiple video streams while maintaining real-time performance requirements essential for practical surveillance applications.
 
-\newpage
-
 \begin{figure}[!htbp]
     \centering
-    \includegraphics[width=1.1\textwidth]{Figure/centralized_overview.png}
+    \includegraphics[width=1.05\textwidth]{Figure/centralized_overview.png}
     \caption{Centralized server architecture. The server is equipped with a decent GPU and CPU, and it is responsible for performing sophisticated model inference tasks, vector database operations, and multi-consumer message processing.}
     \label{fig:centralized_server_overview}
 \end{figure}
 
+The comprehensive system data flow and processing pipeline architecture is detailed in Section \ref{sec:system_data_flow}, which provides an in-depth analysis of the interconnected components and their operational mechanisms within the centralized server framework.
+
 \subsection{System data flow and processing pipeline}
+\label{sec:system_data_flow}
 
-The centralized server architecture orchestrates a complex data flow that transforms raw video streams into actionable identity verification results through multiple interconnected services. As depicted in Figure \ref{fig:centralized_server_overview}, the processing pipeline begins when edge devices capture and preprocess video frames, transmitting video frames, cropped person detections, and bounding box coordinates through Kafka message queues to the centralized server.
+The centralized server architecture orchestrates a complex data flow that transforms raw video streams into actionable identity verification results through multiple interconnected services. As depicted in Figure \ref{fig:centralized_server_overview}, the processing pipeline begins when edge devices capture and preprocess video frames, transmitting video frames, cropped person detections, and bounding box coordinates through Kafka message queues to the centralized server. Meanwhile, multiple consumers are polling messages from the topic \texttt{reid\_input} to starting the processing pipeline, which will be discussed more in detail in the next section.
 
-Each partition of the Kafka topics corresponds to a specific camera feed, and each consumer group is responsible for processing messages from a single partition, ensuring that message ordering is preserved—a critical requirement for the tracking module of the Re-ID system. As illustrated in Figure \ref{fig:centralized_server_overview}, Consumer \#1 represents the data processing pipeline that serves as a template for additional consumers. Each consumer operates within an event loop that fetches batched messages (maximum 30 messages) from its assigned Kafka topic partition every 1 second. This batched processing approach significantly reduces computational overhead compared to continuous message fetching, while maintaining near real-time processing capabilities essential for surveillance applications.
+\subsubsection{Messages polling from Kafka}
+\label{sec:kafka_messages_polling}
+
+Each partition of the Kafka topics corresponds to a specific camera feed, and each consumer group is responsible for processing messages from a single partition, ensuring that message ordering is preserved, which is a critical requirement for the tracking module of the Re-ID system. As illustrated in Figure \ref{fig:centralized_server_overview}, Consumer \#1 represents the data processing pipeline that serves as a template for additional consumers. Each consumer operates within an event loop that fetches batched messages (maximum 30 messages) from its assigned Kafka topic partition every 1 second. This batched processing approach significantly reduces computational overhead compared to continuous message fetching, while maintaining near real-time processing capabilities essential for surveillance applications.
+
+\subsubsection{Get person's metadata (Asynchronous)}
 
 After receiving the batch of messages, the system processes each message (frame) to get the person's metadata through a structured pipeline:
 
-\begin{enumerate}
-   \item For each frame containing cropped person detections and bounding box coordinates, the system extracts person regions and computes two essential properties (referred to as person metadata):
+\begin{enumerate}[label=\quad\textbf{\arabic*.}]
+   \item Starting the event loop to asynchrously process the batch of messages (frames) from the Kafka topic \texttt{reid\_input}.
+   \item For each frame containing cropped person detections and bounding box coordinates, the system extracts person regions and computes two essential properties (referred to as person metadata) asynchronously:
    \begin{itemize}
-       \item \textit{Embedding vector}: A numerical feature representation of the person region used for similarity searches in the vector database to determine whether the person already exists in the system.
+       \item \textit{Embedding vector}: A numerical feature representation of the person region used for similarity searches in the vector database to determine whether the person already exists in the system. In the proposed system, OSNet and LightMBN models are used to extract visual embeddings from person regions, which are then stored in the vector database for later retrieval and matching.
        \item \textit{Gender classification}: The predicted gender of the person (male or female), enabling gender-based search space partitioning that reduces computational complexity by approximately 50\% by querying only relevant gender subsets during similarity matching operations.
    \end{itemize}
-   \item The processing goal is to obtain complete results for all frames in the batch before proceeding to tracking and identity matching operations.
+   \item When all frames in the batch are processed, the results are sorted by their original timestamps to maintain temporal order before proceeding to the tracking phase.
 \end{enumerate}
 
-The first processing step does not require maintaining frame order, as the primary objective is achieving accurate and efficient results that can be sorted by timestamp before performing tracking and identity matching. This independence from sequential processing makes asynchronous processing an optimal approach for the initial metadata extraction phase, allowing parallel computation of embeddings and gender classifications across multiple frames simultaneously to maximize throughput and minimize processing latency.
+During the asynchronous processing, the system uses the \textbf{Models Service} via the \textbf{FastAPI Gateway} - acting as the central coordination layer that orchestrates the processing pipeline between Kafka consumers and Ray Serve services - to extract embeddings and classify gender.
 
+After receiving the results from the \textbf{Models Service}, which is the embeddings and gender classes (male or female) for all the person regions of each frame, the ``Get person's metadata (Async)'' module will prepare them as the metadata for each frame before forwarding them to the next module: ``Tracking (Sync)'', which will be discussed in detail in the next section.
 
-The \textbf{FastAPI Gateway} acts as the central coordination layer that orchestrates the processing pipeline between Kafka consumers and Ray Serve services. As depicted in Figure \ref{fig:centralized_server_overview}, when consumers poll batched messages (cropped frames and bounding boxes) from their assigned Kafka partitions, the processing follows a sequential workflow via the FastAPI Gateway. First, the \textbf{Get person's metadata (Async)} module sends all cropped frames in the batch to the \textbf{Models Service} for feature extraction (OSnet, LightMBN embeddings) and gender classification (EfficientNet B0). After all frames in the batch are processed, the results are sorted by their original timestamps to maintain temporal order before proceeding to the tracking phase.
+\subsubsection{Tracking (Sync)}
+\label{sec:tracking_sync}
 
-The sorted embeddings and gender classifications are then forwarded to the customized \textbf{Tracking (Sync)} module, which iterates through each frame in correct timestamp order. The tracking module (ByteTrack or BOTSort) uses detection results and embeddings to perform association with previous tracklets, returning a list of person IDs for each frame. Crucially, only newly discovered IDs that do not exist in previous tracklets are considered "non-verified" and require database verification. This is because tracking algorithms can only maintain ID persistence in the short term and cannot determine whether a person actually existed in the system previously.
+The sorted embeddings and gender classifications are then forwarded to the customized \textbf{Tracking (Sync)} module, which iterates through each frame in correct timestamp order. The tracking module - ByteTrack uses detection results and embeddings to perform association with previous tracklets, returning a list of person IDs for each frame. Crucially, only newly discovered IDs that do not exist in previous tracklets are considered "non-verified" and require database verification. This is because tracking algorithms can only maintain ID persistence in the short term and cannot determine whether a person actually existed in the system previously.
 
-For these non-verified IDs, the tracking module requests the \textbf{ID Verifier Service} to query the Qdrant vector database using gender-based search space partitioning and embedding similarity search. Once verified identities are returned, the tracking module updates its tracklet data with the correct IDs, ensuring that subsequent frames do not require repeated database queries for the same person, as the tracking module only consults the ID verifier service when encountering new, unrecognized identities.
+For these non-verified IDs, the tracking module requests the \textbf{ID Verifier Service} to query the Redis vector database using gender-based search space partitioning and embedding similarity search. Once verified identities are returned, the tracking module updates its tracklet data with the correct IDs, ensuring that subsequent frames do not require repeated database queries for the same person, as the tracking module only consults the ID verifier service when encountering new, unrecognized identities.
 
+After the tracking module has processed all frames in the batch, the results are ready to be published back to the Kafka output topics.
+
+\subsubsection{Publishing results to output topic}
 Processed results, including verified identities, gender classifications, bounding box coordinates, and confidence scores, are published back to Kafka output topics using the same partitioned structure. This bidirectional communication pattern enables multiple web clients to subscribe to specific camera feeds or system-wide notifications, supporting diverse use cases from real-time monitoring dashboards to alert systems and analytical reporting applications.
 
 The architecture's microservice design ensures fault tolerance and independent scaling, where individual services can be replicated or upgraded without affecting the overall system operation, making it suitable for production deployment in enterprise surveillance environments.
 
+For a comprehensive understanding of the individual services comprising the centralized server architecture, the subsequent sections provide detailed technical analysis, commencing with the Models Service implementation.
 
 \subsection{Models service}
 
@@ -46,7 +59,14 @@ This section examines the implementation details of the \textbf{Models Service},
 
 \subsubsection{Ray Serve configuration}
 
-The Ray Serve configuration defines the deployment parameters and resource allocation for the Models Service. This setup establishes a distributed serving environment optimized for concurrent model inference across multiple GPU-accelerated workers, as demonstrated in the following \texttt{config.yaml} file:
+The Ray Serve configuration defines the deployment parameters and resource allocation for the Models Service. This setup establishes a distributed serving environment optimized for concurrent model inference across multiple GPU-accelerated workers, as demonstrated in the following \texttt{config.yaml} file, depicted in Figure \ref{fig:ray_serve_config}.
+
+
+\textbf{Network Configuration}: The service is configured to accept HTTP requests on port 8000 and gRPC requests on port 9000, with the proxy deployed on every node (\texttt{EveryNode}) to ensure load distribution and minimize network latency. The \texttt{0.0.0.0} host binding enables external access from edge devices and other system components.
+
+\textbf{Resource Allocation Strategy}: The deployment specifies 4 replicas of the ModelService, each allocated 2.0 CPU cores and 0.25 GPU units. This fractional GPU allocation enables efficient GPU memory sharing, allowing multiple model inference processes to utilize the same GPU simultaneously. With 4 replicas sharing GPU resources, the system can achieve optimal GPU utilization while maintaining parallel processing capabilities.
+
+\newpage
 
 \begin{figure}[htbp]
     \centering
@@ -54,11 +74,6 @@ The Ray Serve configuration defines the deployment parameters and resource alloc
     \caption{Ray Serve configuration file}
     \label{fig:ray_serve_config}
 \end{figure}
-
-
-\textbf{Network Configuration}: The service is configured to accept HTTP requests on port 8000 and gRPC requests on port 9000, with the proxy deployed on every node (\texttt{EveryNode}) to ensure load distribution and minimize network latency. The \texttt{0.0.0.0} host binding enables external access from edge devices and other system components.
-
-\textbf{Resource Allocation Strategy}: The deployment specifies 4 replicas of the ModelService, each allocated 2.0 CPU cores and 0.25 GPU units. This fractional GPU allocation enables efficient GPU memory sharing, allowing multiple model inference processes to utilize the same GPU simultaneously. With 4 replicas sharing GPU resources, the system can achieve optimal GPU utilization while maintaining parallel processing capabilities.
 
 The multiple replica strategy addresses a fundamental challenge in serving lightweight neural networks on GPU hardware. The deployed models are relatively compact: OSNet contains approximately 2 million parameters (8MB model size), while EfficientNet B0 comprises around 5.3 million parameters (21MB model size). These small model footprints significantly underutilize GPU computational resources when processed sequentially through traditional approaches such as iterative for-loops over bounding box detections.
 
@@ -76,9 +91,9 @@ The 4-replica configuration with 0.25 GPU allocation per replica ensures that th
 
 This configuration strikes an optimal balance between resource utilization, processing latency, and system reliability, ensuring that the \textbf{Models Service} can efficiently handle the computational demands of real-time person Re-ID applications across distributed edge-server architectures.
 
-\subsubsection{Feature extraction}
+\subsubsection{Serving feature extraction module with Ray Serve}
 
-The feature extraction component represents the core computational module of the Models Service, responsible for transforming raw person detection images into numerical feature representations suitable for similarity matching and identity verification. The implementation leverages two state-of-the-art person Re-ID models—OSNet and LightMBN—each optimized for different aspects of feature extraction performance and accuracy.
+The feature extraction component represents the core computational module of the Models Service, responsible for transforming raw person detection images into numerical feature representations suitable for similarity matching and identity verification. The implementation leverages two state-of-the-art person Re-ID models-OSNet and LightMBN-each optimized for different aspects of feature extraction performance and accuracy.
 
 \begin{enumerate}
     \item \textbf{Cold start problem}:\\
@@ -116,13 +131,13 @@ The feature extraction component represents the core computational module of the
     Each API endpoint returns structured responses containing feature vectors, dimensional information, and processing metadata, enabling clients to select the most appropriate processing mode based on their specific latency and throughput requirements.
 \end{enumerate}
 
-\subsubsection{Gender classification}
+\subsubsection{Serving gender classification module with Ray Serve}
 
-The gender classification component serves as an optimization module within the Models Service, designed to reduce computational complexity in identity verification by enabling gender-based search space partitioning. This approach leverages the biological distinction between male and female individuals to partition the vector database, effectively reducing the search space by approximately 50\% during similarity matching operations when implemented. The implementation utilizes a custom-trained EfficientNet B0 model specifically optimized for person gender classification tasks, as detailed in Section \ref{sec:classification_experiments}.
+The gender classification component serves as an optimization module within the Models Service, designed to reduce computational complexity in identity verification by enabling gender-based search space partitioning. This approach leverages the biological distinction between male and female individuals to partition the vector database, effectively reducing the search space by approximately 50\% during similarity matching operations when implemented. The implementation utilizes a custom-trained EfficientNet B0 model specifically optimized for person gender classification tasks.
 
 \textbf{Model Architecture and Configuration}: The gender classification model is built upon the EfficientNet B0 architecture, a compound scaling method that uniformly scales network width, depth, and resolution with a set of fixed scaling coefficients. The model is initialized through the \texttt{GenderClassificationModel} class and configured to process 224×224 pixel RGB images, matching the standard input dimensions for EfficientNet architectures. The model outputs binary classification logits representing male and female categories, with softmax activation applied to generate probability distributions for confidence scoring.
 
-\textbf{Custom Training Approach}: Unlike the pre-trained person Re-ID models (OSNet and LightMBN), the gender classification model represents a custom-trained solution developed specifically for this surveillance system. The training methodology, dataset composition, and performance evaluation are comprehensively documented in Section \ref{sec:classification_experiments}, where detailed experimental results demonstrate the model's effectiveness in distinguishing gender characteristics from person detection crops under various lighting conditions, viewing angles, and image qualities typical in surveillance environments.
+\textbf{Custom Training Approach}: Unlike the pre-trained person Re-ID models (OSNet and LightMBN), the gender classification model represents a custom-trained solution developed specifically for this surveillance system.
 
 \textbf{Preprocessing Pipeline}: The gender classification preprocessing follows the same ImageNet normalization standards as the embedding models but with distinct dimensional requirements. Input images are resized to 224×224 pixels to match EfficientNet's expected input dimensions, converted to RGB format for color consistency, and normalized using mean=[0.485, 0.456, 0.406] and std=[0.229, 0.224, 0.225]. This preprocessing ensures optimal compatibility with the model's learned feature representations while maintaining consistency with standard computer vision practices.
 
@@ -134,44 +149,27 @@ The inference process applies softmax activation to the model's logits using \te
 
 \subsection{ID verifier service}
 \label{sec:id_verifier_service}
-The ID Verifier Service implements an identity verification pipeline that combines gender-based search space partitioning with embedding similarity search to determine whether newly detected persons correspond to existing identities in the system database. This service operates as an essential component in the person Re-ID pipeline, receiving "non-verified" IDs from the tracking module and returning verified identity assignments with associated confidence scores.
+The ID verifier service implements an identity verification pipeline that combines gender-based search space partitioning with embedding similarity search to determine whether newly detected persons correspond to existing identities in the system database. This service operates as an essential component in the person Re-ID pipeline, receiving ``non-verified'' IDs from the tracking module and returning verified identity assignments with associated confidence scores.
 
 \subsubsection{Core Functionality and Gender-Based Partitioning}
 
-The service queries the Qdrant vector database using a two-stage verification approach: first applying gender classification results with confidence scores greater than 0.9 to partition the search space, then performing embedding similarity calculations within the relevant gender subset. The 0.9 confidence threshold for gender classification is strategically chosen to address several critical challenges in surveillance environments:
-
-\textbf{Occlusion Handling}: Bounding box occlusion represents a common problem in surveillance scenarios where persons are partially obscured by other objects, architectural elements, or other individuals in the scene. This issue frequently occurs during initial person appearance in video frames, when individuals enter the camera's field of view gradually or emerge from behind obstacles. Under these conditions, the gender classification model may produce erroneous predictions due to incomplete visual information, potentially leading to incorrect identity verification results by searching within the wrong gender subset.
-
-\textbf{Confidence Threshold Rationale}: The 0.9 confidence threshold ensures that only high-confidence gender predictions are used for search space partitioning. When gender classification confidence falls below this threshold, the system defaults to searching across all gender categories, maintaining verification accuracy at the cost of increased computational overhead. This adaptive approach balances processing efficiency with robustness against classification errors.
-
-\textbf{Fallback Mechanism}: For cases where gender confidence is below 0.9, the service implements a comprehensive search across all stored embeddings, ensuring that genuine identity matches are not missed due to uncertain gender predictions. This fallback strategy is particularly crucial in several challenging surveillance scenarios:
-
+To efficiently process identity verification requests while maintaining high accuracy, the service queries the Redis vector database using a two-stage verification approach:
 \begin{itemize}
-    \item \textbf{Posterior View Detection}: When the person detection captures only the back view of an individual, gender classification models face significant challenges due to the absence of facial features and frontal body characteristics that typically inform gender prediction. Hair length, clothing style, and body silhouette from posterior angles often provide insufficient or ambiguous visual cues, resulting in low confidence scores that trigger the comprehensive search fallback.
-
-    \item \textbf{Severe Occlusion Cases}: Beyond partial occlusion, scenarios involving severe obstruction (such as individuals partially hidden behind vehicles, pillars, or other persons) result in incomplete visual information that degrades gender classification confidence. In these cases, the fallback mechanism ensures that identity verification can still succeed based on the visible portions of the person's embedding features.
-
-    \item \textbf{Extreme Lighting Conditions}: Poor illumination, backlighting, or high-contrast scenarios can obscure gender-indicative visual features, leading to uncertain gender predictions. The comprehensive search approach maintains verification capability even when environmental conditions compromise gender classification accuracy.
-
-    \item \textbf{Distance and Resolution Limitations}: When persons appear at significant distances from the camera, resulting in small bounding boxes with limited resolution, gender classification models may lack sufficient detail to make confident predictions. The fallback ensures that distant individuals can still be verified against the complete identity database.
-    
+    \item First, the service applies gender classification results with confidence scores greater than $0.9$ to partition the search space.
+    \item Second, the service performs embedding similarity calculations within the relevant gender subset.
 \end{itemize}
 
-This fallback strategy maintains system reliability while optimizing performance for high-confidence cases, ensuring robust identity verification across diverse surveillance conditions and viewing angles.
+The $0.9$ confidence threshold for gender classification is strategically chosen to address several critical challenges in surveillance environments:
+
+\textbf{Confidence Threshold Rationale}: The $0.9$ confidence threshold ensures that only high-confidence gender predictions are used for search space partitioning. When confidence falls below this threshold, the system searches across all gender categories, maintaining accuracy at the cost of increased computational overhead.
+
+\textbf{Fallback Mechanism}: For gender confidence below $0.9$, the service searches all stored embeddings to prevent missed identity matches. This strategy is crucial for challenging scenarios including posterior view detection (where facial features are absent), severe occlusion cases, extreme lighting conditions, and distance limitations that reduce image resolution. The fallback maintains system reliability while optimizing performance for high-confidence cases.
 
 \subsubsection{Integration with Tracking Module}
 
 As illustrated in Figure \ref{fig:centralized_server_overview}, the ID Verifier Service maintains bidirectional communication with the tracking module through a structured data exchange protocol. The service receives newly detected person embeddings along with their associated metadata (including gender predictions, bounding box coordinates, and temporal information), processes these through the verification pipeline, and returns verified identity assignments with confidence scores and similarity metrics.
 
 The tracking module subsequently updates tracklet data with verified IDs, ensuring consistent identity maintenance across video frames and camera views. This integration enables the system to maintain identity consistency throughout person trajectories, even when individuals temporarily leave and re-enter camera coverage areas.
-
-\subsubsection{Database Query Optimization}
-
-The service leverages Qdrant's vector similarity search capabilities enhanced by metadata filtering to achieve optimal query performance. The gender-based partitioning strategy reduces the candidate pool by approximately 50\% for high-confidence gender predictions, directly improving query response times and system scalability. This optimization proves particularly effective in multi-camera \\environments where the same individual may appear across different camera feeds, requiring efficient cross-camera identity matching.
-
-\textbf{Similarity Computation}: The service employs cosine similarity calculations between query embeddings and stored identity vectors, with configurable similarity thresholds to balance precision and recall. The system maintains separate similarity thresholds for different scenarios (e.g., same-camera re-identification vs. cross-camera matching) to accommodate varying difficulty levels in identity verification tasks.
-
-\textbf{Scalability Considerations}: The partitioned search approach scales effectively with database size, as the computational complexity grows sub-linearly with the number of stored identities. This scalability advantage becomes more pronounced in large-scale surveillance deployments with extensive identity databases.
 
 \subsubsection{API Implementation and Performance}
 
@@ -187,7 +185,7 @@ Embedding storage represents a critical component of the identity management sys
 
 Redis was selected for its exceptional performance characteristics in real-time applications, including sub-millisecond query response times, native support for complex data structures, and efficient memory-based operations that enable rapid embedding comparisons. The system leverages Redis's built-in expiration mechanisms for automatic stale data management and its atomic operations for thread-safe concurrent access in multi-threaded environments. Additionally, Redis provides flexible data persistence options, allowing the system to balance between pure in-memory performance and data durability based on deployment requirements.
 
-\textbf{Redis Configuration and Data Structure}
+\subsubsection{Redis Configuration and Data Structure}
 
 The Redis-based identity management system is configured to optimize performance for real-time identity matching while ensuring efficient memory utilization and data persistence. The configuration encompasses several critical parameters tailored to the specific requirements of the Re-ID system.
 
@@ -209,7 +207,7 @@ The Redis-based identity management system is configured to optimize performance
 
 \textbf{Persistence Configuration}: The system employs Redis's hybrid persistence approach, combining RDB snapshots for periodic data backup with AOF (Append-Only File) logging for transaction durability, ensuring data integrity across system restarts while maintaining optimal performance.
 
-\textbf{Enhanced Retrieval Strategy with Gender-Based Filtering}
+\subsubsection{Enhanced Retrieval Strategy with Gender-Based Filtering}
 
 The retrieval process implements an intelligent multi-stage approach designed to balance accuracy and computational efficiency through metadata-based pre-filtering. The system employs gender classification as a primary filtering mechanism to reduce search space and improve query performance.
 
@@ -227,4 +225,6 @@ The retrieval process implements an intelligent multi-stage approach designed to
 
 \textbf{Gender Classification Integration}: The system integrates gender classification results with a confidence threshold of 0.9 for search space partitioning. High-confidence gender predictions enable efficient filtering, while low-confidence classifications default to comprehensive searches to prevent false exclusions. This adaptive approach ensures robust performance across diverse detection scenarios while maximizing computational efficiency.
 
-\textbf{Performance Optimization}: The Redis-based approach provides several performance advantages, including constant-time key lookups, efficient memory-based similarity computations, and automatic memory management through TTL mechanisms. The system's architecture enables horizontal scaling through Redis clustering for high-throughput deployments while maintaining millisecond-level response times for real-time applications.
+\subsubsection{Performance Optimization}
+
+The Redis-based approach provides several performance advantages, including constant-time key lookups, efficient memory-based similarity computations, and automatic memory management through TTL mechanisms. The system's architecture enables horizontal scaling through Redis clustering for high-throughput deployments while maintaining millisecond-level response times for real-time applications.

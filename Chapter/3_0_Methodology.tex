@@ -1,7 +1,7 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-Building upon the theoretical foundations established in Chapter~\ref{chapter:literature}, this chapter presents a comprehensive examination of (i) the person Re-ID module architecture and its integration within the hybrid edge-server management system, (ii) detailed specifications of the proposed lightweight Re-ID module optimized for SME deployment, (iii) edge device hardware implementation strategies, (iv) the deployment of microservices frameworks and (v) how the system utilizes person metadata (gender) to enhance the efficiency of identity retrieval processes.
+Building upon the theoretical foundations established in Chapter~\ref{chapter:literature}, this chapter presents a comprehensive examination of the proposed system's design and implementation. It details (i) the overall hybrid edge-server architecture, (ii) the specific hardware and software strategies for resource-constrained edge devices, (iii) the architecture of the centralized server, including its use of microservices for intensive AI tasks, (iv) the crucial role of the Apache Kafka cluster as the communication backbone, and (v) a novel optimization technique that uses person metadata (gender) to enhance identity retrieval efficiency.
 
 \section{Overview}
 \label{sec:overview}
@@ -16,7 +16,7 @@ This research presents a comprehensive, scalable person Re-ID system that utiliz
 \end{figure}
 
 \begin{itemize}
-    \item \textbf{Edge devices (Producers)}: Each edge device is responsible for capturing and preprocessing video streams from surveillance cameras. Given the limited resources typically available at the edge—specifically, a CPU-only setup with minimal specifications (1 CPU at 3.5 GHz and 1 GB RAM, roughly equivalent to 7.5 GFLOPS) using $\times86$ architecture (Intel or AMD processors)—the device focuses solely on performing essential tasks like human detection and frame compression. Notably, no GPU acceleration is required here since these initial processing tasks, particularly when using highly optimized models, can be executed efficiently on a CPU. To meet the constraints of such limited hardware, we utilize YOLOv11n, the smallest and most compact version of the YOLOv11 model family, ensuring acceptable inference speed and latency without specialized accelerators. This approach enables reliable real-time processing at the edge while conserving resources for more demanding tasks on the server side.
+    \item \textbf{Edge devices (Producers)}: Each edge device is responsible for capturing and preprocessing video streams from surveillance cameras. Given the limited resources typically available at the edge-specifically, a CPU-only setup with minimal specifications (1 CPU at 3.5 GHz and 1 GB RAM, roughly equivalent to 7.5 GFLOPS) using $\times86$ architecture (Intel or AMD processors)-the device focuses solely on performing essential tasks like human detection and frame compression. Notably, no GPU acceleration is required here since these initial processing tasks, particularly when using highly optimized models, can be executed efficiently on a CPU. To meet the constraints of such limited hardware, we utilize YOLOv11n, the smallest and most compact version of the YOLOv11 model family, ensuring acceptable inference speed and latency without specialized accelerators. This approach enables reliable real-time processing at the edge while conserving resources for more demanding tasks on the server side.
 
     
     \item \textbf{Kafka message brokers cluster}: A cluster of three Kafka brokers ensures high availability, fault tolerance, and reliable message management. Each edge device sends messages asynchronously to this Kafka cluster, packaging compressed video frames (approximately 300 KB each) and bounding box coordinates using a structured format defined by Apache Avro schemas. Kafka efficiently handles message buffering and transmission, preventing data loss even during temporary network disruptions. This Kafka cluster is deployed as a containerized service using Docker, simplifying management, scalability, and deployment across the hybrid infrastructure.
@@ -39,7 +39,5 @@ This division of labor among the components ensures optimal resource utilization
 \section{Centralized server}
 \label{sec:centralized_server}
 \input{Chapter/3_4_Server}
-
-\section{Web application}
 
 \end{document}

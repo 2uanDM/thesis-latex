@@ -25,23 +25,33 @@ Our experiments were conducted on a computer featuring an Intel i5-12600K CPU pa
 
 \section{Dataset}
 \label{sec:dataset}
+
+Three distinct datasets were utilized in this thesis to comprehensively evaluate different components of the person re-identification system. The P-DESTRE dataset (Section \ref{sec:pdestre}) served as the primary training source for the gender classification model, providing diverse aerial perspectives with detailed soft biometric annotations. The CUHK03 dataset (Section \ref{sec:cuhk03}) was employed for benchmarking the embedding model performance, offering a standardized evaluation framework with challenging outdoor surveillance scenarios. Finally, the BK6I dataset (Section \ref{sec:bk6i}) provided video-based sequences captured under various challenging conditions to evaluate the complete end-to-end Re-ID system performance in realistic deployment scenarios.
+
 \input{Chapter/4_1_Dataset}
 
-\section{Result for detection model}
+\section{Experimental results}
+\label{sec:experimental_results}
+
+\subsection{Result for detection model}
 \label{sec:detection_experiments}
 \input{Chapter/4_2_Detection}
 
-\section{Result for embedding models}
+\subsection{Result for embedding models}
 \label{sec:embedding_experiments}
 \input{Chapter/4_3_Embedding}
 
-% \section{Result for gender classification}
+% \subsection{Result for gender classification}
 % \label{sec:classification_experiments}
 % \input{Chapter/4_4_Gender}
 
-\section{Ray Serve performance}
+\subsection{Ray Serve performance}
 \label{sec:ray_serve_performance}
 \input{Chapter/4_5_Ray}
+
+\section{Deployment results}
+\label{sec:deployment_results}
+\input{Chapter/4_6_System_deployment}
 
 
 \end{document}
