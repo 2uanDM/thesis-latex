@@ -1,8 +1,6 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
-Chapter~\ref{chapter:intro} established the foundational context by identifying the innovation deadlock faced by SMEs, defining the research aims for creating affordable person Re-ID systems, examining current architectural limitations, and outlining the novel contributions of this thesis. There are two main parts in this chapter. They are presentations about (i) related works in Section~\ref{sec:related}, and (ii) the foundation theory in Section~\ref{sec:foundtheo}. Specifically, in Section~\ref{sec:foundtheo}, models, frameworks, utilities and algorithms contributing to the making of the end-to-end pipeline will be introduced in detail. 
-
-To achieve the thesis objectives, four key technical components will be examined: (i) lightweight object detection using YOLOv11 for CPU-based edge deployment in Section~\ref{sec:objdect}, (ii) efficient object tracking through ByteTrack algorithms in Section~\ref{sec:objtrack}, (iii) optimized feature extraction methodologies for resource-constrained environments in Section~\ref{sec:feature_extraction}, light-weight image classification task specific for human's metadata (gender) in section~\ref{sec:image_classification}, and (iv) distributed system infrastructure including message queuing in Section~\ref{sec:message_queue}, containerization in Section~\ref{sec:containerization}, and vector database optimization in Section~\ref{sec:vector_database}.
+Chapter~\ref{chapter:intro} established the foundational context by identifying the innovation deadlock faced by SMEs, defining research aims for affordable person Re-ID systems, and outlining the thesis contributions. This chapter presents related works in Section~\ref{sec:related} and foundation theory in Section~\ref{sec:foundtheo}, where models, frameworks, and algorithms for the end-to-end pipeline are detailed. To achieve the thesis objectives, four key technical components are examined: lightweight object detection using YOLOv11 for CPU-based edge deployment (Section~\ref{sec:objdect}), efficient object tracking through ByteTrack algorithms (Section~\ref{sec:objtrack}), optimized feature extraction and lightweight image classification for human metadata in limited hardware resource (Sections~\ref{sec:feature_extraction} and~\ref{sec:image_classification}), and distributed system infrastructure including message queuing,\\ containerization, and vector database optimization (Sections~\ref{sec:message_queue},~\ref{sec:containerization}, and~\ref{sec:vector_database}).
 
 \section{Related works}
 \label{sec:related}
@@ -13,12 +11,10 @@ To achieve the thesis objectives, four key technical components will be examined
 Recent advances in person Re-ID have significantly enhanced performance across various scenario, primarily relying on powerful computational resources. In the context of visible–infrared ReID, Guo et al. (2025) introduced the Region‑based Augmentation and Cross Modality Attention (RACA) model \cite{visible-infrared-reid}, which leverages region-level augmentation (PedMix) and a modality feature transfer (MFT) module with cross-attention to reduce interference between modalities, yielding notable improvements on SYSU‑MM01 and RegDB benchmarks.
 
 Addressing unsupervised learning, Qin et al. (2025) proposed Attention‑based Hybrid Contrastive Learning (AHCL) \cite{unsupervised-reid}. Their framework integrates spatial and channel attention with a hybrid contrastive loss, combining cluster-level and instance-level representations to bolster ReID accuracy without labels.
-
+ 
 Multimodal ReID has been further advanced by Yan et al. (2025) through \\ FusionSegReID \cite{fusionsegreid}, which fuses image features, textual descriptions, and \\ segmentation masks to enhance robustness—especially in occluded or low-quality scenarios. Interactive, language-driven retrieval was pushed forward by Niu et al. (2025) in ChatReID \cite{chatreid}. This framework uses a Vision–Language Model (LVLM) with Hierarchical Progressive Tuning, enabling interactive, VQA-style queries to improve identity-level matching performance.
 
-Despite the impressive progress of person ReID, most state-of-the-art models demand substantial hardware and computational resources, limiting their practicality on lightweight or embedded devices. To address this, \textbf{OSNet} (Omni-Scale Network) was proposed by Zhou et al.~\cite{zhou2019omniscalefeaturelearningperson}. OSNet is a compact yet powerful architecture, specifically designed for efficient deployment. It employs \textit{omni-scale feature learning}, utilizing multiple convolutional streams with varying receptive field sizes within each residual block to capture both fine-grained details and global features. Additionally, OSNet integrates a \textit{Unified Aggregation Gate (UAG)} that adaptively fuses multi-scale features via channel-wise weighting. By leveraging depthwise-separable 
-
-convolutions, OSNet significantly reduces computational cost and model size, achieving state-of-the-art performance despite being substantially lighter than standard models like ResNet-50.
+Despite the impressive progress of person ReID, most state-of-the-art models demand substantial hardware and computational resources, limiting their practicality on lightweight or embedded devices. To address this, \textbf{OSNet} (Omni-Scale Network) was proposed by Zhou et al.~\cite{zhou2019omniscalefeaturelearningperson}. OSNet is a compact yet powerful architecture, specifically designed for efficient deployment. It employs \textit{omni-scale feature learning}, utilizing multiple convolutional streams with varying receptive field sizes within each residual block to capture both fine-grained details and global features. Additionally, OSNet integrates a \textit{Unified Aggregation Gate (UAG)} that adaptively fuses multi-scale features via channel-wise weighting. By leveraging depthwise-separable convolutions, OSNet significantly reduces computational cost and model size, achieving state-of-the-art performance despite being substantially lighter than standard models like ResNet-50.
 
 Building upon OSNet's efficiency, \textbf{LightMBN} (Lightweight Multi-Branch Network) introduced by Herzog et al.~\cite{Herzog_2021} further optimizes this backbone architecture. LightMBN expands OSNet by adding specialized global, part-based, and channel-wise branches, thereby enriching feature representations without significant complexity increases. It also incorporates enhanced training techniques, including label smoothing, random erasing, and cosine learning rate schedules, leading to improved generalization performance. Consequently, LightMBN achieves impressive accuracies on widely-used benchmarks like Market-1501 and CUHK03, outperforming many heavier architectures while remaining lightweight and suitable for resource-constrained deployments.
 
@@ -34,8 +30,9 @@ Within retail and customer experience contexts, edge computing provides substant
 
 Recent research has also concentrated on adapting AI models specifically for edge environments. Novel person Re-ID methods incorporate pedestrian edge features directly into their representations and leverage these edge characteristics to enhance global context feature extraction \cite{mdpi2024_edge}. Such methods highlight the practical feasibility of deploying sophisticated Re-ID algorithms on devices with limited computational capabilities.
 
-Edge AI is becoming more widely available across many applications. Edge Intelligence, or Edge AI, means moving AI processing from cloud systems directly to edge devices where data is created. This change is important for making AI more available and affordable, especially for small and medium-sized businesses that may find cloud-based AI solutions too expensive \cite{viso2024}.
+Edge AI is becoming more widely available across many applications. Edge Intelligence, or Edge AI, means moving AI processing from cloud systems directly to edge devices where data is created. This change is important for making AI more available and affordable, especially for organizations that may find cloud-based AI solutions too expensive \cite{viso2024}.
 
+Therefore, this thesis leverages edge computing paradigms to distribute computational workloads across edge devices, enabling cost-effective deployment of person Re-ID systems while maintaining real-time performance requirements.
 
 \subsection{Microservices and Distributed Systems}
 \label{sec:microservice}
@@ -52,7 +49,7 @@ Cloud-based solutions have also been investigated. Video-based person Re-ID usin
 
 Introducing a message broker into a microservices architecture provides additional advantages. Message brokers enable seamless communication among microservices by handling data exchange, enhancing reliability, and simplifying integration. Specifically, they help Re-ID systems quickly share person-related data across various cameras and processing units, ensuring low latency and better system scalability.
 
-Overall, the shift toward microservices architecture, combined with the use of message brokers, reflects a broader trend towards modular, scalable, and efficient AI system deployment, making it particularly beneficial for distributed person Re-ID solutions in retail and similar settings \cite{splunk2024}.
+Overall, the shift toward microservices architecture, combined with the use of message brokers, reflects a broader trend towards modular, scalable, and efficient AI system deployment, making it particularly beneficial for distributed person Re-ID solutions in retail and similar settings \cite{splunk2024}. To maximize the performance of the system by avoiding bottlenecks in any components of the centralized server, this thesis utilizes a microservices architecture to distribute the computational workload across edge devices and the central server.
 
 
 \section{Foundation theory}
@@ -154,21 +151,12 @@ Deploying person Re-ID and lightweight classification models effectively in hybr
 
 To balance these trade-offs, Ray Serve~\cite{ray_serve_docs} has emerged as an attractive framework, offering notable flexibility and ease of integration. Specifically designed for scalable deployments, Ray Serve supports serving multiple models simultaneously, dynamically composing inference pipelines, and efficiently managing replicas to maximize GPU utilization. Additionally, it seamlessly integrates with FastAPI, allowing developers to directly embed their inference endpoints within Python-based microservice architectures. This combination of flexible model orchestration, autoscaling capabilities, and developer-friendly integration makes Ray Serve particularly suited for deploying lightweight person Re-ID models like OSNet and LightMBN, as well as efficient image classification models, within hybrid edge–server setups.
 
-\subsection{Containerization and orchestration}
+\subsection{Containerization}
 \label{sec:containerization}
 
 Containerization is a foundational technology in modern DevOps and microservices architectures, enabling applications and their dependencies to be packaged into lightweight, isolated units. This approach simplifies development workflows and significantly improves service portability. By encapsulating services within containers, they can be deployed, scaled, and updated independently, which facilitates more efficient version control and lifecycle management in distributed systems.
 
 Among the various container technologies, Docker \cite{docker_intro} is a widely used tool for building and running containers. Docker Engine serves as the core runtime that manages container lifecycle, including creation, execution, and resource allocation. Developers define application environments in a `Dockerfile`, which contains step-by-step instructions for building container images, including base operating system, dependencies, configuration files, and application code. This declarative approach ensures consistent behavior across both staging and production environments, eliminating the common "it works on my machine" problem. The Docker Engine utilizes Linux kernel features such as namespaces for process isolation and cgroups for resource management, enabling multiple containers to run securely on a single host without interference. Additionally, Docker's layered filesystem architecture allows for efficient image storage and sharing, where common layers are reused across different containers, reducing storage overhead and improving deployment speed.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=1\textwidth]{Figure/kubernetes.png}
-    \caption{Kubernetes components \cite{kubernetes_architecture}.}
-    \label{fig:kubernetes_architecture}
-\end{figure}
-
-Kubernetes complements Docker by orchestrating these containers at scale. It automates key operational tasks, including deployment, scaling, failover, and version rollouts across clusters. In the context of a hybrid edge-server person Re-ID pipeline, Docker is employed to package models, inference code, and APIs as distinct services. Kubernetes then orchestrates these services—such as Kafka brokers, Ray Serve instances, and vector databases—to ensure system-wide reliability, scalability, and streamlined version control.
 
 \subsection{Vector Database}
 \label{sec:vector_database}
@@ -186,14 +174,16 @@ Several popular vector databases have emerged, each with distinct characteristic
   
   \item \textbf{ChromaDB} is lightweight and optimized for NLP embeddings, providing simplicity and ease of use, though it may not offer the highest performance for large-scale or complex metadata queries~\cite{chromadb}.
   
-  \item \textbf{Redis}, traditionally a key-value store, now includes vector search capabilities, offering speed and convenience; however, it provides limited support for advanced metadata filtering and complex query patterns~\cite{redis_vector}.
-  
   \item \textbf{Qdrant}, a Rust-based vector database, excels in hybrid queries due to its built-in support for efficient metadata filtering combined directly with vector search. Its HNSW indexing structure integrates metadata filtering during the search, significantly reducing query latency compared to post-filtering approaches~\cite{qdrant}.
+  
+  \item \textbf{Redis}, traditionally a key-value store, now includes vector search capabilities through the RediSearch module. Redis offers exceptional speed and convenience with its in-memory architecture, providing low-latency vector similarity searches while maintaining familiar Redis operations for metadata management. Its mature ecosystem and widespread adoption make it particularly attractive for hybrid edge-server deployments~\cite{redis_vector}.
+  
+  
 \end{itemize}
 
 Vector database indexes, such as HNSW \cite{hnsw}, differ fundamentally from traditional database indexes. Rather than focusing on exact matches or sorted queries, they organize vectors into graph-based structures optimized for approximate nearest-neighbor searches in high-dimensional spaces. The most commonly used distance metric in such scenarios is cosine similarity, which measures the angular similarity between vectors.
 
-Among these alternatives, \textbf{Qdrant} aligns most closely with the needs of our hybrid edge-server person Re-ID pipeline. Its capability to perform rapid cosine similarity searches with integrated metadata filtering—such as gender classification obtained via classification model — enables significant reductions in search space, thereby enhancing retrieval speed, accuracy, and overall computational efficiency.
+Among these alternatives, \textbf{Redis} emerges as the most suitable choice for our hybrid edge-server person Re-ID pipeline. Its in-memory architecture provides exceptional query performance, while its mature ecosystem and widespread adoption ensure reliable deployment and maintenance. Although Redis may have more limited advanced metadata filtering capabilities compared to specialized vector databases like Qdrant, its simplicity, speed, and integration convenience make it ideal for real-time person Re-ID applications where low latency is critical. Additionally, Redis's ability to handle both vector similarity searches and traditional key-value operations within a single system simplifies the overall architecture and reduces operational complexity.
 
 
 \end{document}

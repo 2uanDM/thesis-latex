@@ -47,33 +47,12 @@ This section examines the implementation details of the \textbf{Models Service},
 
 The Ray Serve configuration defines the deployment parameters and resource allocation for the Models Service. This setup establishes a distributed serving environment optimized for concurrent model inference across multiple GPU-accelerated workers, as demonstrated in the following \texttt{config.yaml} file:
 
-\begin{lstlisting}[language=yaml, caption=Ray Serve configuration file]
-proxy_location: EveryNode
-http_options:
-    host: 0.0.0.0
-    port: 8000
-grpc_options:
-    port: 9000
-    grpc_servicer_functions: []
-logging_config:
-    encoding: TEXT
-    log_level: INFO
-    logs_dir: null
-    enable_access_log: true
-    additional_log_standard_attrs: []
-applications:
-    - name: thesis-model-serving
-    route_prefix: /
-    import_path: src.main.model_service
-    runtime_env: {}
-    deployments:
-    - name: ModelService
-        num_replicas: 4
-        max_ongoing_requests: 32
-        ray_actor_options:
-        num_cpus: 2.0
-        num_gpus: 0.25
-\end{lstlisting}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{Figure/rayserve_conf.png}
+    \caption{Ray Serve configuration file}
+    \label{fig:ray_serve_config}
+\end{figure}
 
 
 \textbf{Network Configuration}: The service is configured to accept HTTP requests on port 8000 and gRPC requests on port 9000, with the proxy deployed on every node (\texttt{EveryNode}) to ensure load distribution and minimize network latency. The \texttt{0.0.0.0} host binding enables external access from edge devices and other system components.

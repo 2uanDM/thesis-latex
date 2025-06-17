@@ -1,12 +1,5 @@
 The edge device processing pipeline presented in Figure \ref{fig:edges} illustrates a compact and efficient architecture designed specifically for CPU-based edge devices equipped with a single-core CPU operating at 3.5 GHz and limited memory capacity of 512 MB RAM. This streamlined approach optimally addresses the constraints of computational resources while performing real-time video analytics directly at the network edge.
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=1\textwidth]{Figure/edges.png}
-    \caption{Edge devices processing pipeline}
-    \label{fig:edges}
-\end{figure}
-
 The pipeline operates through several integrated components that work together to achieve efficient video processing:
 
 \begin{itemize}
@@ -20,6 +13,13 @@ The pipeline operates through several integrated components that work together t
     
     \item \textbf{Kafka producer}: Finally, these structured messages are published to Kafka \texttt{reid\_input} topic via Kafka producer framework, enabling asynchronous, real-time communication with centralized server without being blocked by the centralized server processing.
 \end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{Figure/edges.png}
+    \caption{Edge devices processing pipeline}
+    \label{fig:edges}
+\end{figure}
 
 This targeted approach ensures minimal resource consumption, reduced network bandwidth requirements, prompt local analytics responses, and increased scalability by distributing the video processing workload across multiple constrained CPU-based edge devices.
 
@@ -48,13 +48,12 @@ The inference setup for YOLOv11 is carefully optimized to balance accuracy and c
 
 Post-inference, only the following essential detection data are extracted for efficient downstream processing:
 
-\begin{lstlisting}[language=json, caption={Extracted bounding box information after inference}]
-    {
-        "bbox": box.xyxy[0].tolist(),
-        "confidence": float(box.conf),
-        "class_id": int(box.cls),
-    }
-\end{lstlisting}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Figure/bboxes_yolo.png}
+    \caption{Extracted bounding box information after inference}
+    \label{fig:bboxes_yolo}
+\end{figure}
 
 The bounding box information follows a structured format specifically designed for optimal performance:
 
@@ -76,13 +75,12 @@ For further optimization, YOLOv11 is converted from the PyTorch (.pt) format to 
 
 The conversion process is automated, utilizing YOLO's built-in export function that dynamically simplifies the computation graph to maintain a lightweight and efficient model suitable for low-resource environments:
 
-\begin{lstlisting}[language=bash, caption={ONNX model conversion command}]
-model.export(
-    format="onnx",
-    dynamic=True,
-    simplify=True,
-)
-\end{lstlisting}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{Figure/onnx_command.png}
+    \caption{ONNX model conversion command}
+    \label{fig:onnx_command}
+\end{figure}
 
 Here, the \texttt{dynamic=True} flag ensures that the model can handle varying input sizes, while the \texttt{simplify=True} flag simplifies the model to reduce unnecessary operations, resulting in a more efficient and streamlined model. The output ONNX model is saved in the \texttt{yolo11n.onnx} file.
 
@@ -93,14 +91,12 @@ Alternatively, for Intel hardware-based edge deployments, YOLOv11 is converted i
 
 The OpenVINO conversion is similarly automated using YOLO's export utilities, producing optimized models capable of handling real-time analytics tasks efficiently under the given hardware limitations:
 
-
-\begin{lstlisting}[language=bash, caption={OpenVINO model conversion command}]
-model.export(
-    format="openvino",
-    dynamic=True,
-    simplify=True,
-)
-\end{lstlisting}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Figure/openvino_command.png}
+    \caption{OpenVINO model conversion command}
+    \label{fig:openvino_command}
+\end{figure}
 
 Similar to the ONNX conversion, the \texttt{dynamic=True} flag ensures that the model can handle varying input sizes, while the \texttt{simplify=True} flag simplifies the model to reduce unnecessary operations, resulting in a more efficient and streamlined model. The output OpenVINO model is saved inside a folder which contains 3 files:
 \begin{itemize}
@@ -170,18 +166,14 @@ The function \texttt{cv2.imencode} requires 3 main parameters:
 \subsection{Messages serialization}
 \label{sec:edge_message_serialization}
 
-As mentioned in Section \ref{sec:message_serialization}, the detection results along with the compressed images are structured into Avro schema serialized messages before being published to Kafka.\\
+As mentioned in Section \ref{sec:message_serialization}, the detection results along with the compressed images are structured into Avro schema serialized messages before being published to Kafka.
 
-\newpage
-
-\begin{lstlisting}[language=python, caption={Message serialization with Avro schema, using \texttt{DatumWriter} and \texttt{BinaryEncoder}}]
-def serialize_message(self, detection_result, image):
-    writer = DatumWriter(self.avro_schema)
-    bytes_writer = python_io.BytesIO()
-    encoder = io.BinaryEncoder(bytes_writer)
-    writer.write(message, encoder)
-    return bytes_writer.getvalue()
-\end{lstlisting}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{Figure/avro_code.png}
+    \caption{Message serialization with Avro schema, using \texttt{DatumWriter} and \texttt{BinaryEncoder}}
+    \label{fig:avro_code}
+\end{figure}
 
 The \texttt{DatumWriter} class take the parsed the Avro schema and create a writer object. The \texttt{bytes\_writer} is a buffer to store the serialized message. The \texttt{encoder} is a binary encoder to encode the message. The \texttt{writer.write} method takes the message and the encoder, and write the message to the buffer. Finally, the \texttt{bytes\_writer.getvalue()} method returns the serialized message in bytes, before being published to Kafka cluster via \textbf{Kafka producer} framework.
 

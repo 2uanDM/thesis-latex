@@ -17,12 +17,12 @@ Due to these critical considerations, Apache Kafka plays an indispensable role, 
 
 \subsection{Cluster configuration}
 
-A Kafka cluster is a collection of multiple Kafka brokers that work together, managed by a single Zookeeper node or a cluster of Zookeeper nodes. Based on the properties of the current Re-ID system, a cluster includes 3 brokers and 1 Zookeeper node is selected to ensure high availability and fault tolerance, as illustrated in Figure~\ref{fig:kafka_cluster}.
+A Kafka cluster is a collection of multiple Kafka brokers that work together, managed by a single Zookeeper node or a cluster of Zookeeper nodes. Based on the properties of the current Re-ID system, a cluster includes three brokers and one Zookeeper node is selected to ensure high availability and fault tolerance, as illustrated in Figure~\ref{fig:kafka_cluster}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1\textwidth]{Figure/kafka_overview.png}
-    \caption{Kafka clusters with 3 brokers and 1 Zookeeper node.}
+    \caption{Kafka clusters with three brokers and one Zookeeper node.}
     \label{fig:kafka_cluster}
 \end{figure}
 
@@ -115,17 +115,14 @@ The conventional solution involves converting binary image data to Base64 encodi
     \item \textbf{Kafka Transmission}: The encoded message is sent through Kafka topics
 \end{enumerate}
 
-The JSON message structure follows this format:
+The JSON message structure with base64 encoded image data follows this format:
 
-\begin{lstlisting}[language=json, caption={JSON message structure with Base64 encoded image data}]
-{
-    "device_id": "camera_001",
-    "frame_number": 12345,
-    "image_data": "iVBORw0KGgoAAAANSUhEUgAA...",
-    "created_at": 1640995200000,
-    "result": [...]
-}
-\end{lstlisting}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{Figure/json_base64.png}
+    \caption{JSON message structure with Base64 encoded image data.}
+    \label{fig:json_base64}
+\end{figure}
 
 This encoding is necessary because JSON, being a text-based format, cannot natively represent binary data. JSON supports only primitive types (string, number, boolean) and structural types (object, array), making text encoding the only viable option for binary data inclusion.
 
@@ -144,40 +141,23 @@ To address the limitations of text-based encoding, we propose using Apache Avro 
 
 The Avro schema definition for our edge device messages is structured as follows:
 
-\begin{lstlisting}[language=json, caption={Avro schema definition for edge device messages}]
-{
-  "type": "record",
-  "name": "EdgeDeviceMessage",
-  "namespace": "com.edge.device",
-  "fields": [
-    {"name": "device_id", "type": "string"},
-    {"name": "frame_number", "type": "long"},
-    {"name": "result", "type": {
-      "type": "array",
-      "items": {
-        "type": "record",
-        "name": "Detection",
-        "fields": [
-          {"name": "bbox", "type": {
-            "type": "array", "items": "float"}},
-          {"name": "confidence", "type": "float"},
-          {"name": "class_id", "type": "int"}
-        ]
-      }
-    }},
-    {"name": "created_at", "type": "long"},
-    {"name": "image_data", "type": "bytes"}
-  ]
-}
-\end{lstlisting}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Figure/avro_def.png}
+    \caption{Avro schema definition for edge device messages.}
+    \label{fig:avro_schema}
+\end{figure}
+
 
 \subsection{Topic settings}
 
 In this project, we setup 2 topics:
 \begin{itemize}
-    \item \texttt{reid\_input}: The topic for edge devices to send messages to the Kafka cluster. On server side, each consumer will be assigned to a different consumer group to process different partitions of the topic, hence ensure that each consumer group will only fetch data from one partition (one camera). 
+    \item \texttt{reid\_input}: The topic for edge devices to send messages to the Kafka cluster. On server side, each consumer will be assigned to a different consumer group to process different partitions of the topic, hence ensure that each consumer group will only fetch data from one  partition (one camera). 
     
-    \begin{lstlisting}[language=yaml, caption={Topic settings for \texttt{reid\_input}}]
+    Below code shows the topic settings for \texttt{reid\_input}:
+    
+    \begin{lstlisting}[language=yaml]
     number_of_partitions: 6
     replication_factor: 3
     min_insync_replicas: 2
@@ -206,7 +186,7 @@ In this project, we setup 2 topics:
     
     \item \texttt{reid\_output}: The topic for storing processed frames with comprehensive metadata including person identifications, bounding boxes, and descriptive text annotations. This enables the client-side web application to interactively buffer and visualize real-time Re-ID results for users, providing a seamless interface for monitoring person tracking across the camera network.
     
-    \begin{lstlisting}[language=yaml, caption={Topic settings for \texttt{reid\_output}}]
+    \begin{lstlisting}[language=yaml]
     number_of_partitions: 3
     replication_factor: 3
     min_insync_replicas: 2
@@ -221,20 +201,14 @@ In this project, we setup 2 topics:
 
 \subsection{Producer Settings}
 
-The Kafka producer configuration is essential for achieving efficient and reliable message delivery from edge devices to the Kafka cluster. Configuration parameters are optimized for the Re-ID system's real-time streaming requirements, balancing performance, data integrity, and system reliability.\\
+The Kafka producer configuration is essential for achieving efficient and reliable message delivery from edge devices to the Kafka cluster. Configuration parameters are optimized for the Re-ID system's real-time streaming requirements, balancing performance, data integrity, and system reliability.
 
-\begin{lstlisting}[language=Python, caption={Kafka producer configuration for edge devices}]
-self.producer = KafkaProducer(
-    client_id=self.device_id,
-    bootstrap_servers=self.kafka_bootstrap_servers,
-    key_serializer=lambda x: x.encode("utf-8"),  # Edge device ID
-    value_serializer=self.serialize_message,     # Serialize the message using Avro
-    linger_ms=10,
-    batch_size=16384,
-    acks=1,                                      # 0: No ack, 1: Leader ack, 'all': All replicas ack
-    max_in_flight_requests_per_connection=5,
-)
-\end{lstlisting}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Figure/producer_conf.png}
+    \caption{Kafka producer configuration for edge devices.}
+    \label{fig:producer_config}
+\end{figure}
 
 The producer configuration parameters are strategically chosen to balance throughput, latency, and reliability for the Re-ID streaming pipeline:
 
@@ -260,29 +234,14 @@ This configuration ensures optimal performance for the Re-ID system's streaming 
 
 \subsection{Consumer Settings}
 
-Similar to the producer configuration, the Kafka consumer setup requires common connectivity parameters. However, consumers also need additional specialized settings tailored explicitly for efficiently managing high-volume video streams and computationally demanding Re-ID processing tasks on the centralized server.\\
+Similar to the producer configuration, the Kafka consumer setup requires common connectivity parameters. However, consumers also need additional specialized settings tailored explicitly for efficiently managing high-volume video streams and computationally demanding Re-ID processing tasks on the centralized server.
 
-
-
-\begin{lstlisting}[language=Python, caption={Kafka consumer configuration for centralized server}]
-self.consumer = KafkaConsumer(
-    self.input_topic_name,
-    client_id=self.client_id,
-    bootstrap_servers=self.kafka_bootstrap_servers,
-    auto_offset_reset="earliest",
-    enable_auto_commit=True,
-    group_id=self.consumer_group,
-    session_timeout_ms=30000,                    # 30 seconds
-    heartbeat_interval_ms=3000,
-    max_poll_interval_ms=300000,                 # 5 minutes
-    retry_backoff_ms=100,                        # Time to wait before retrying
-    reconnect_backoff_ms=1000,                   # Time to wait before reconnecting
-    reconnect_backoff_max_ms=1000,               # Maximum time to wait before reconnecting
-    fetch_min_bytes=1024 * 1024,                 # 1MB
-    fetch_max_bytes=100 * 1024 * 1024,           # 100MB
-    max_partition_fetch_bytes=100 * 1024 * 1024,
-)
-\end{lstlisting}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{Figure/consumer_conf.png}
+    \caption{Kafka consumer configuration for centralized server.}
+    \label{fig:consumer_config}
+\end{figure}
 
 The consumer configuration emphasizes parameters specific to server-side processing and high-volume data consumption:
 

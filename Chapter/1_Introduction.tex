@@ -1,66 +1,79 @@
 \documentclass[../main.tex]{subfiles}
 \begin{document}
 
-This chapter provides the understanding of the current circumstances that SMEs are facing due to their limited financial ability to implement solutions for enhancing user experience, particularly using AI solutions. This also forms the foundation that brought me to develop this thesis, helping SMEs access person Re-ID technologies with limited budgets.
+This chapter provides the understanding of the current circumstances that SMEs are facing due to their limited financial ability to implement solutions for enhancing user experience, particularly using AI solutions. This also forms the foundation that brought me to develop this thesis, helping organizations with limited resources still be able to access person Re-ID technologies.
 
 
-\section{Background and Motivation}
+\section{Background and motivation}
+\label{sec:background}
+
+\subsection{Background}
+
+SMEs across various industries are facing an extraordinary challenge in today's competitive market. Customer expectations have fundamentally shifted from simple product transactions to demanding high-quality service provided by staff members. This change is particularly evident in sectors like \gls{FnB} and retail, where 65\% of customers report that staff responsiveness and personalized attention influence their purchasing decisions more than traditional advertising \cite{customer_experience}.
+
+SMEs operate under much tighter financial constraints than large corporations. In the FnB sector alone, 45\% of businesses report that raw materials account for over 30\% of their selling prices, leaving little room for major technology investments \cite{customer_experience2}. Over 60\% of FnB businesses have experienced revenue decreases while facing rising operational costs including rent, labor, and materials \cite{customer_experience3}.
+
+This creates an ``innovation deadlock'' where organizations:
+\begin{itemize}
+    \item Recognize the critical need for better staff management and service optimization solutions.
+    \item Understand that technology could provide competitive advantages in monitoring and improving staff performance.
+\end{itemize}
+
+To help organizations with limited hardware resources still access Re-ID technology, they need solutions for surveillance problems like staff Re-ID to visualize activity maps and optimize service delivery. Modern AI technologies like Re-ID offer powerful solutions for understanding staff behavior patterns, monitoring service coverage across different areas, and identifying bottlenecks in staff allocation. Re-ID systems can seamlessly track staff movements across different sections of a store or restaurant, measure response times to customer needs, and identify areas where additional staff presence is required.
+
+However, traditional Re-ID systems present significant economic barriers. Conventional implementations require expensive GPU-powered edge devices. When scaled across multiple cameras needed for comprehensive coverage, these costs become prohibitive. The high computational requirements of traditional Re-ID systems also demand powerful central servers for data processing and storage, further inflating the total cost of ownership. For organizations already struggling with thin profit margins, these substantial upfront investments often exceed their entire annual technology budgets.
+
+\subsection{Motivation}
 \label{sec:motivation}
 
-Small and Medium Enterprises (SMEs) across various industries are facing an extraordinary challenge in today's competitive market. Customer expectations have fundamentally shifted from simple product transactions to demanding rich, personalized experiences. This change is particularly evident in sectors like Food \& Beverage (F\&B) and retail, where 65\% of customers report that positive experiences influence their purchasing decisions more than traditional advertising \cite{customer_experience}.
+The challenges outlined above highlight a critical gap in the market: while Re-ID technology offers tremendous potential for staff monitoring and operational optimization, existing solutions remain financially inaccessible to organizations with limited resources. This creates an urgent need for affordable, scalable Re-ID solutions designed specifically for environments with limited hardware resources.
 
-SMEs operate under much tighter financial constraints than large corporations. In the F\&B sector alone, 45\% of businesses report that raw materials account for over 30\% of their selling prices, leaving little room for major technology investments \cite{customer_experience2}. Over 60\% of F\&B businesses have experienced revenue decreases while facing rising operational costs including rent, labor, and materials \cite{customer_experience3}.
+To address this need effectively, it becomes essential to examine existing architectural approaches and understand why they fall short for resource-constrained environments. The architectural design of a person Re-ID system is a critical consideration, with each approach presenting distinct trade-offs. The chosen architecture directly impacts the system's cost, scalability, and real-time performance, making it an especially important factor for organizations operating under budget constraints. The primary architectural models are \textbf{fully centralized}, \textbf{fully edge-based} and \textbf{hybrid}, yet none of these fully address the unique challenges faced by organizations.
 
-This creates an "innovation deadlock" where SMEs:
-\begin{itemize}
-    \item Recognize the critical need for better customer experience solutions.
-    \item Understand that technology could provide competitive advantages.
-\end{itemize}
+To understand why current solutions fall short for organizations with limited resources, it is essential to examine each architectural approach and its specific limitations. The following subsections analyze these three primary models in detail:
 
-Modern AI technologies like Re-ID offer powerful solutions for understanding customer behavior, optimizing store layouts, and creating personalized experiences. Re-ID systems can seamlessly track customer movements across different areas of a store, measure how long customers spend in specific sections, and identify popular pathways and bottlenecks. This technology enables businesses to provide tailored assistance, highlight relevant promotions based on customer interests, and optimize staff allocation in real-time.
-
-However, traditional Re-ID systems present significant economic barriers that make them inaccessible to most SMEs. Conventional implementations require \\ expensive GPU-powered edge devices. When scaled across multiple cameras needed for comprehensive coverage, these costs become prohibitive.
-
-The high computational requirements of traditional Re-ID systems also demand powerful central servers for data processing and storage, further inflating the total cost of ownership. For SMEs already struggling with thin profit margins, these substantial upfront investments often exceed their entire annual technology budgets.
-
-Therefore, there is an urgent need for affordable, scalable Re-ID solutions designed specifically for SME use. Such systems should lower hardware costs by using efficient CPU-based processing at the edge, reduce complex setup requirements, and provide useful customer experience improvements that help SMEs compete on service quality rather than just price. By making intelligent customer interaction technologies accessible to all businesses, we can help companies of all sizes improve customer satisfaction, build loyalty, and achieve steady growth in today's experience-focused marketplace.
-
-\section{Challenges and Current Solutions}
-\label{sec:tentative}
-
-The architectural design of a person Re-ID system is a critical consideration, with each approach presenting distinct trade-offs. The chosen architecture directly impacts the system's cost, scalability, and real-time performance, making it an especially important factor for SMEs operating under budget constraints. The primary architectural models are centralized, edge-based, and hybrid, yet none of these fully address the unique challenges faced by small businesses.
-
-\subsection{Fully Centralized Architecture}
+\subsubsection{Fully centralized architecture}
 The conventional approach involves a centralized architecture where standard cameras transmit their video feeds over a network to a single, powerful server. This central server is responsible for all computationally demanding tasks, such as person detection, feature extraction, and identity matching.
 
-While this model simplifies on-site hardware, it introduces significant drawbacks that render it impractical for most SMEs:
+While this model simplifies on-site hardware, it introduces significant drawbacks that render it impractical for organizations with limited resources:
 \begin{itemize}
-    \item \textbf{Network Dependency and Costs:} The continuous streaming of video from multiple cameras requires substantial network bandwidth, leading to high operational costs. The system's reliability is also contingent on network stability, as latency or packet loss can result in incomplete data.
-    \item \textbf{High Server Costs:} The computational load on the central server scales with the number of cameras, necessitating a significant upfront investment in high-performance server hardware. For many SMEs, this cost is prohibitive. This architecture also creates a single point of failure.
-    \item \textbf{Management Complexity:} A Re-ID pipeline consists of multiple processing stages. Managing this complex workflow for numerous concurrent video streams on a single machine presents a considerable technical challenge.
+    \item \textbf{Network dependency and costs:} The continuous streaming of video from multiple cameras requires substantial network bandwidth, leading to high operational costs. The system's reliability is also contingent on network stability, as latency or packet loss can result in incomplete data.
+    \item \textbf{High server costs:} The computational load on the central server scales with the number of cameras, necessitating a significant upfront investment in high-performance server hardware. For many companies, this cost is prohibitive. This architecture also creates a single point of failure.
+    \item \textbf{Management complexity:} A Re-ID pipeline consists of multiple processing stages. Managing this complex workflow for numerous concurrent video streams on a single machine presents a considerable technical challenge.
 \end{itemize}
 
-\subsection{Fully Edge-Based Architecture}
-To mitigate the network dependencies of the centralized model, an edge-based architecture places computational power on devices located near the cameras. These "edge" devices process video locally and transmit only lightweight metadata, such as feature vectors, to a central location.
+\subsubsection{Fully edge-based architecture}
+To mitigate the network dependencies of the centralized model, an edge-based architecture places computational power on devices located near the cameras. These ``edge'' devices process video locally and transmit only lightweight metadata, such as feature vectors, to a central location.
 
-This design reduces network bandwidth requirements and enhances resilience to network disruptions. However, it introduces its own distinct disadvantages for SMEs:
+This design reduces network bandwidth requirements and enhances resilience to network disruptions. However, it introduces its own distinct disadvantages:
 \begin{itemize}
-    \item \textbf{High Cumulative Hardware Cost:} The primary issue is the cost of the edge devices. While a single unit may be affordable, the expense escalates with each camera added, making large-scale deployments costly.
-    \item \textbf{Distributed Maintenance:} Managing a distributed fleet of edge devices is operationally more complex than maintaining a single server, increasing the burden of software updates and hardware troubleshooting.
+    \item \textbf{High cumulative hardware cost:} The primary issue is the cost of the edge devices. While a single unit may be affordable, the expense escalates with each camera added, making large-scale deployments costly.
+    \item \textbf{Distributed maintenance:} Managing a distributed fleet of edge devices is operationally more complex than maintaining a single server, increasing the burden of software updates and hardware troubleshooting.
 \end{itemize}
 
-\subsection{Hybrid Architecture}
+\subsubsection{Hybrid Architecture}
 A hybrid architecture attempts to strike a balance by distributing the workload between edge devices and a central server. For instance, a low-cost edge device might handle initial person detection, while the more intensive matching tasks are offloaded to the server.
 
 This approach aims to reduce hardware costs at the edge, but it presents its own set of complexities:
 \begin{itemize}
-    \item \textbf{System Integration Challenges:} Dividing tasks creates a more intricate, multi-tiered system. Ensuring seamless communication and efficient integration between the edge and server components is a significant engineering task.
-    \item \textbf{Potential for Latency:} The handoff of data between the edge and the server can introduce processing delays. In applications requiring immediate responses, this latency can undermine the system's utility.
-    \item \textbf{Workload Balancing:} Achieving an optimal balance is difficult. If the edge device is underpowered, it can become a bottleneck. Conversely, if too much processing is offloaded to the server, the architecture reintroduces the bandwidth and cost issues of the centralized model.
+    \item \textbf{System integration challenges:} Dividing tasks creates a more intricate, multi-tiered system. Ensuring seamless communication and efficient integration between the edge and server components is a significant engineering task.
+    \item \textbf{Potential for latency:} The handoff of data between the edge and the server can introduce processing delays. In applications requiring immediate responses, this latency can undermine the system's utility.
+    \item \textbf{Workload balancing:} Achieving an optimal balance is difficult. If the edge device is underpowered, it can become a bottleneck. Conversely, if too much processing is offloaded to the server, the architecture reintroduces the bandwidth and cost issues of the centralized model.
 \end{itemize}
-In summary, current Re-ID architectures do not present ideal solutions for SMEs due to challenges related to cost, network dependency, and complexity. This "innovation deadlock" hinders smaller businesses from adopting this valuable technology. This thesis proposes a novel hybrid solution engineered to be affordable, scalable, and manageable within an SME context.
 
-\section{Objectives and scope of Thesis} 
+In summary, the analysis of existing Re-ID architectures reveals a significant opportunity: while current solutions fail to meet the needs of resource-constrained organizations due to prohibitive costs, network dependencies, and operational complexity, the underlying technology holds immense potential for transforming staff monitoring and operational efficiency. This gap between technological capability and practical accessibility represents not just a challenge, but a compelling opportunity to democratize advanced surveillance technology.
+
+The persistent ``innovation deadlock'' that prevents smaller organizations from leveraging Re-ID technology can be broken through thoughtful engineering and architectural innovation. By addressing the fundamental cost and complexity barriers, we can unlock the transformative potential of person Re-ID for organizations that need it most—those operating with limited resources but requiring maximum operational efficiency.
+
+This thesis presents a feasible solution: a novel hybrid architecture specifically engineered to make Re-ID technology affordable, scalable, and manageable for surveillance systems in resource-constrained environments. Our approach promises to bridge the gap between cutting-edge AI capabilities and practical deployment constraints, enabling organizations of all sizes to harness the power of intelligent staff monitoring and operational optimization.
+
+\section{Tentative solution} 
+\label{sec:tentative_solution}
+
+
+
+
+\section{Objectives and scope of thesis} 
 \label{sec:objectives}
 
 This thesis aims to address the challenges faced by SMEs in adopting person Re-ID technology by developing a cost-effective, scalable solution that combines the benefits of edge computing with centralized processing power.

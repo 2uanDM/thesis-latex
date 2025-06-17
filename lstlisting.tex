@@ -105,5 +105,12 @@
   framexleftmargin=\parindent,
   framexrightmargin=5pt,
   columns=flexible,
-  keepspaces=true
+  keepspaces=true,
+  name={}
 }
+
+% Disable listing numbering
+\renewcommand{\lstlistingname}{}
+\makeatletter
+\renewcommand{\fnum@lstlisting}{\lstlistingname}
+\makeatother
